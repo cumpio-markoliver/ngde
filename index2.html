@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXIS - Inventory Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #FFFFFF;
+            color: #0A2538;
+            overflow-x: hidden;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(232, 74, 46, 0.3), 0 0 40px rgba(226, 204, 156, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(232, 74, 46, 0.5), 0 0 60px rgba(226, 204, 156, 0.3); }
+        }
+
+        /* Login Screen */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0A2538 0%, #1a3a52 50%, #0A0D0F 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10002;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 50px;
+            width: 420px;
+            text-align: center;
+            color: white;
+            animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glow 3s ease-in-out infinite;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-logo {
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-out 0.3s backwards;
+        }
+
+        .login-logo-gradient {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 10px 30px rgba(232, 74, 46, 0.4);
+        }
+
+        .login-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+            animation: fadeIn 1s ease-out 0.5s backwards;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease-out 0.7s backwards;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: fadeIn 1s ease-out 0.9s backwards;
+        }
+
+        .login-input {
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .login-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #E84A2E;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 20px rgba(232, 74, 46, 0.3);
+        }
+
+        .login-btn {
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+            background-size: 200% 200%;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(232, 74, 46, 0.4);
+            animation: gradientShift 2s ease infinite;
+        }
+
+        /* Main App */
+        #mainApp {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        #mainApp.active {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(226, 228, 231, 0.3);
+            padding: 30px 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, 
+                rgba(232, 74, 46, 0.03) 0%, 
+                rgba(226, 204, 156, 0.03) 100%);
+            pointer-events: none;
+        }
+
+        .sidebar-header {
+            padding: 0 20px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.4s ease;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0A2538;
+            white-space: nowrap;
+            transition: all 0.4s ease;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .toggle-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(232, 74, 46, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(232, 74, 46, 0.2);
+            transform: scale(1.1);
+        }
+
+        .toggle-btn svg {
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed .toggle-btn svg {
+            transform: rotate(180deg);
+        }
+
+        .nav-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 15px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 15px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            color: #0A2538;
+        }
+
+        .nav-item:hover {
+            background: rgba(232, 74, 46, 0.08);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(232, 74, 46, 0.15), rgba(226, 204, 156, 0.15));
+            color: #E84A2E;
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .nav-text {
+            white-space: nowrap;
+            transition: all 0.4s ease;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 14px;
+        }
+
+        .sidebar-footer {
+            padding: 20px 15px;
+            border-top: 1px solid rgba(226, 228, 231, 0.3);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed .user-profile {
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #E84A2E, #E2CC9C);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            transition: all 0.4s ease;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .user-info {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0A2538;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #0A2538;
+            opacity: 0.6;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: linear-gradient(135deg, 
+                rgba(232, 74, 46, 0.02) 0%, 
+                rgba(226, 204, 156, 0.02) 100%);
+        }
+
+        .header {
+            margin-bottom: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0A2538;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb {
+            color: #0A2538;
+            opacity: 0.6;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(232, 74, 46, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            color: #0A2538;
+            border: 1px solid rgba(226, 228, 231, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            position: relative;
+            margin-bottom: 30px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            font-size: 15px;
+            color: #0A2538;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #E84A2E;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 16px rgba(232, 74, 46, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: #0A2538;
+            opacity: 0.5;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+            animation: slideUp 0.7s ease-out;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(10, 37, 56, 0.08);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon svg {
+            width: 22px;
+            height: 22px;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0A2538;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #0A2538;
+            opacity: 0.7;
+        }
+
+        /* Table */
+        .table-container {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid rgba(226, 228, 231, 0.3);
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0A2538;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(10, 37, 56, 0.04);
+        }
+
+        th {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0A2538;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(226, 228, 231, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(232, 74, 46, 0.04);
+        }
+
+        td {
+            padding: 16px 20px;
+            color: #0A2538;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.good {
+            background: rgba(46, 213, 115, 0.15);
+            color: #27ae60;
+        }
+
+        .status-badge.fair {
+            background: rgba(255, 165, 0, 0.15);
+            color: #f39c12;
+        }
+
+        .status-badge.repair, .status-badge.underrepair {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+
+        /* View Management */
+        .view {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Room Cards */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .room-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .room-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(10, 37, 56, 0.08);
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid;
+            border-image: linear-gradient(90deg, #E84A2E, #E2CC9C) 1;
+        }
+
+        .room-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0A2538;
+        }
+
+        .room-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(232, 74, 46, 0.15), rgba(226, 204, 156, 0.15));
+            color: #E84A2E;
+        }
+
+        .department-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .department-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .department-item:hover {
+            background: rgba(232, 74, 46, 0.08);
+            transform: translateX(4px);
+        }
+
+        .department-name {
+            font-weight: 600;
+            color: #0A2538;
+            font-size: 14px;
+        }
+
+        .item-count {
+            font-size: 12px;
+            color: #0A2538;
+            opacity: 0.7;
+        }
+
+        /* Date Filter */
+        .filter-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #0A2538;
+            opacity: 0.7;
+        }
+
+        .filter-input {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            background: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            color: #0A2538;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(226, 228, 231, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #E84A2E, #E2CC9C);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #E2CC9C, #E84A2E);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0A2538;
+        }
+
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(232, 74, 46, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(232, 74, 46, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #0A2538;
+            font-size: 14px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            color: #0A2538;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #E84A2E;
+            background: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar .logo-text,
+            .sidebar .nav-text,
+            .sidebar .user-info {
+                opacity: 0;
+                width: 0;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-container">
+            <div class="login-logo">
+                <div class="login-logo-gradient">N</div>
+            </div>
+            <h2 class="login-title">Welcome to NEXIS</h2>
+            <p class="login-subtitle">Inventory Management System</p>
+            <form class="login-form" id="loginForm">
+                <input type="text" class="login-input" placeholder="Username" required>
+                <input type="password" class="login-input" placeholder="Password" required>
+                <button type="submit" class="login-btn">Login to System</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">N</div>
+                    <span class="logo-text">NEXIS</span>
+                </div>
+                <button class="toggle-btn" onclick="toggleSidebar()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-item active" onclick="changeView('dashboard', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <span class="nav-text">Dashboard</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('inventory', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    <span class="nav-text">Inventory</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('activity', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <span class="nav-text">Activity Log</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('users', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <span class="nav-text">User Management</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('settings', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="nav-text">Settings</span>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">A</div>
+                    <div class="user-info">
+                        <div class="user-name">Admin</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+                <div class="nav-item" onclick="logout()">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    <span class="nav-text">Logout</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view active">
+                <div class="header">
+                    <div class="header-top">
+                        <div>
+                            <h2 class="header-title">Dashboard</h2>
+                            <div class="breadcrumb">Home / Dashboard</div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-secondary" onclick="showModal('editRoom')">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                Add Room
+                            </button>
+                            <button class="btn btn-primary" onclick="showModal('addItem')">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                Add Item
+                            </button>
+                        </div>
+                    </div>
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search rooms, items, or departments...">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">1,247</div>
+                                <div class="stat-label">Total Items</div>
+                            </div>
+                            <div class="stat-icon">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">42</div>
+                                <div class="stat-label">Rooms</div>
+                            </div>
+                            <div class="stat-icon">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">18</div>
+                                <div class="stat-label">Under Repair</div>
+                            </div>
+                            <div class="stat-icon">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">96%</div>
+                                <div class="stat-label">Availability</div>
+                            </div>
+                            <div class="stat-icon">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">Recent Activity</h3>
+                        <button class="btn btn-secondary" onclick="changeView('activity')">View All</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Room</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Projector A1</td>
+                                <td>Room 101</td>
+                                <td>Conference</td>
+                                <td><span class="status-badge good">Good</span></td>
+                                <td>2 hours ago</td>
+                            </tr>
+                            <tr>
+                                <td>Whiteboard</td>
+                                <td>Room 205</td>
+                                <td>Training</td>
+                                <td><span class="status-badge repair">Needs Repair</span></td>
+                                <td>5 hours ago</td>
+                            </tr>
+                            <tr>
+                                <td>Conference Phone</td>
+                                <td>Room 301</td>
+                                <td>Executive</td>
+                                <td><span class="status-badge good">Good</span></td>
+                                <td>1 day ago</td>
+                            </tr>
+                            <tr>
+                                <td>Monitor</td>
+                                <td>Room 156</td>
+                                <td>IT</td>
+                                <td><span class="status-badge fair">Fair</span></td>
+                                <td>2 days ago</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Inventory View -->
+            <div id="inventoryView" class="view">
+                <div class="header">
+                    <div class="header-top">
+                        <div>
+                            <h2 class="header-title">Inventory</h2>
+                            <div class="breadcrumb">Home / Inventory</div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="showModal('addItem')">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                Add Item
+                            </button>
+                        </div>
+                    </div>
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search inventory items...">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">All Inventory Items</h3>
+                        <div class="filter-section">
+                            <div class="filter-group">
+                                <label class="filter-label">Status</label>
+                                <select class="filter-input">
+                                    <option>All Status</option>
+                                    <option>Good</option>
+                                    <option>Fair</option>
+                                    <option>Under Repair</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Department</label>
+                                <select class="filter-input">
+                                    <option>All Departments</option>
+                                    <option>Conference</option>
+                                    <option>Training</option>
+                                    <option>Executive</option>
+                                    <option>IT</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item ID</th>
+                                <th>Name</th>
+                                <th>Room</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Last Checked</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#INV-001</td>
+                                <td>Projector A1</td>
+                                <td>Room 101</td>
+                                <td>Conference</td>
+                                <td><span class="status-badge good">Good</span></td>
+                                <td>2024-01-15</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#INV-002</td>
+                                <td>Whiteboard</td>
+                                <td>Room 205</td>
+                                <td>Training</td>
+                                <td><span class="status-badge repair">Under Repair</span></td>
+                                <td>2024-01-14</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#INV-003</td>
+                                <td>Conference Phone</td>
+                                <td>Room 301</td>
+                                <td>Executive</td>
+                                <td><span class="status-badge good">Good</span></td>
+                                <td>2024-01-15</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#INV-004</td>
+                                <td>Monitor</td>
+                                <td>Room 156</td>
+                                <td>IT</td>
+                                <td><span class="status-badge fair">Fair</span></td>
+                                <td>2024-01-13</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Activity Log View -->
+            <div id="activityView" class="view">
+                <div class="header">
+                    <div class="header-top">
+                        <div>
+                            <h2 class="header-title">Activity Log</h2>
+                            <div class="breadcrumb">Home / Activity Log</div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="exportLogs()">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Export Logs
+                            </button>
+                        </div>
+                    </div>
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search activity logs...">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label class="filter-label">Date From</label>
+                        <input type="date" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Date To</label>
+                        <input type="date" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Action Type</label>
+                        <select class="filter-input">
+                            <option>All Actions</option>
+                            <option>Added</option>
+                            <option>Updated</option>
+                            <option>Repaired</option>
+                            <option>Removed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Item</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2024-01-15 14:30</td>
+                                <td>Admin</td>
+                                <td>Updated</td>
+                                <td>Projector A1</td>
+                                <td>Status changed to Good</td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-15 11:15</td>
+                                <td>Technician</td>
+                                <td>Repaired</td>
+                                <td>Whiteboard</td>
+                                <td>Replaced markers</td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-14 16:45</td>
+                                <td>Admin</td>
+                                <td>Added</td>
+                                <td>Conference Phone</td>
+                                <td>New item added to Room 301</td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-14 09:20</td>
+                                <td>Manager</td>
+                                <td>Updated</td>
+                                <td>Monitor</td>
+                                <td>Status changed to Fair</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Management View -->
+            <div id="usersView" class="view">
+                <div class="header">
+                    <div class="header-top">
+                        <div>
+                            <h2 class="header-title">User Management</h2>
+                            <div class="breadcrumb">Home / User Management</div>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="showModal('addUser')">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                Add User
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">System Users</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Last Login</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Admin User</td>
+                                <td>admin@nexis.com</td>
+                                <td>Administrator</td>
+                                <td>2024-01-15 14:30</td>
+                                <td><span class="status-badge good">Active</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>John Technician</td>
+                                <td>john@nexis.com</td>
+                                <td>Technician</td>
+                                <td>2024-01-15 11:15</td>
+                                <td><span class="status-badge good">Active</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Sarah Manager</td>
+                                <td>sarah@nexis.com</td>
+                                <td>Manager</td>
+                                <td>2024-01-14 16:45</td>
+                                <td><span class="status-badge good">Active</span></td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settingsView" class="view">
+                <div class="header">
+                    <div class="header-top">
+                        <div>
+                            <h2 class="header-title">Settings</h2>
+                            <div class="breadcrumb">Home / Settings</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3 class="table-title">System Configuration</h3>
+                    </div>
+                    <div style="padding: 24px;">
+                        <div class="form-group">
+                            <label class="form-label">System Name</label>
+                            <input type="text" class="form-input" value="NEXIS Inventory Management">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Auto-logout Time (minutes)</label>
+                            <input type="number" class="form-input" value="30">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Default Department</label>
+                            <select class="form-select">
+                                <option>Conference</option>
+                                <option>Training</option>
+                                <option>Executive</option>
+                                <option>IT</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Backup Frequency</label>
+                            <select class="form-select">
+                                <option>Daily</option>
+                                <option>Weekly</option>
+                                <option>Monthly</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top: 20px;">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="addItemModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Item</h3>
+                <button class="close-btn" onclick="hideModal('addItem')">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Item Name</label>
+                <input type="text" class="form-input" placeholder="Enter item name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Room</label>
+                <select class="form-select">
+                    <option>Select Room</option>
+                    <option>Room 101</option>
+                    <option>Room 205</option>
+                    <option>Room 301</option>
+                    <option>Room 156</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Department</label>
+                <select class="form-select">
+                    <option>Select Department</option>
+                    <option>Conference</option>
+                    <option>Training</option>
+                    <option>Executive</option>
+                    <option>IT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-select">
+                    <option>Good</option>
+                    <option>Fair</option>
+                    <option>Under Repair</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add Item</button>
+        </div>
+    </div>
+
+    <div id="addUserModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New User</h3>
+                <button class="close-btn" onclick="hideModal('addUser')">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" placeholder="Enter full name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" placeholder="Enter email address">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <select class="form-select">
+                    <option>Administrator</option>
+                    <option>Manager</option>
+                    <option>Technician</option>
+                    <option>Viewer</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" placeholder="Enter password">
+            </div>
+            <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add User</button>
+        </div>
+    </div>
+
+    <script>
+        // Login functionality
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').classList.add('active');
+        });
+
+        // View management
+        function changeView(viewName, element) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Show selected view and set active nav item
+            document.getElementById(viewName + 'View').classList.add('active');
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+
+        // Sidebar toggle
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        }
+
+        // Modal management
+        function showModal(modalName) {
+            document.getElementById(modalName + 'Modal').classList.add('active');
+        }
+
+        function hideModal(modalName) {
+            document.getElementById(modalName + 'Modal').classList.remove('active');
+        }
+
+        // Logout function
+        function logout() {
+            document.getElementById('mainApp').classList.remove('active');
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+
+        // Export logs function
+        function exportLogs() {
+            alert('Exporting activity logs...');
+        }
+
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Search functionality
+        document.querySelectorAll('.search-input').forEach(input => {
+            input.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const table = this.closest('.view').querySelector('table');
+                
+                if (table) {
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(searchTerm) ? '' : 'none';
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
