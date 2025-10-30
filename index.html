@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXIS - NGDumlao Enterprise X Inventory System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        :root {
+            --white: #F6F4F1;
+            --light-gray: #E2E4E7;
+            --cream: #E2CC9C;
+            --red: #E84A2E;
+            --dark-blue: #0A2538;
+            --black: #0A0D0F;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
+            --header-height: 80px;
+            --transition-speed: 0.4s;
+            --gradient-primary: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+            --gradient-secondary: linear-gradient(135deg, #0A2538 0%, #0A0D0F 100%);
+            --gradient-text: linear-gradient(135deg, #E84A2E, #E2CC9C);
+            --gradient-dark: linear-gradient(135deg, #0A2538, #0A0D0F);
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --info: #2196F3;
+            --shadow-light: 0 10px 30px rgba(0,0,0,0.08);
+            --shadow-medium: 0 15px 40px rgba(0,0,0,0.12);
+            --shadow-heavy: 0 25px 50px rgba(0,0,0,0.15);
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--light-gray) 0%, var(--cream) 50%, var(--red) 100%);
+            min-height: 100vh;
+            color: var(--dark-blue);
+            overflow-x: hidden;
+        }
+        
+        /* Enhanced Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Gradient Text Utility */
+        .gradient-text {
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gradient-dark {
+            background: var(--gradient-dark);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--gradient-secondary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeOut 2.5s ease-in-out 1.5s forwards;
+        }
+        
+        .logo {
+            width: 280px;
+            height: 280px;
+            filter: drop-shadow(0 0 30px rgba(232, 74, 46, 0.6)) 
+                    drop-shadow(0 0 60px rgba(232, 74, 46, 0.4));
+            animation: glow 2s ease-in-out infinite alternate, float 3s ease-in-out infinite;
+        }
+        
+        .loading-text {
+            color: var(--white);
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            opacity: 0.9;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--red);
+            border-radius: 50%;
+            margin-top: 2rem;
+            animation: rotate 1.5s linear infinite;
+        }
+        
+        @keyframes glow {
+            from { 
+                filter: drop-shadow(0 0 30px rgba(232, 74, 46, 0.6)) 
+                        drop-shadow(0 0 60px rgba(232, 74, 46, 0.4));
+            }
+            to { 
+                filter: drop-shadow(0 0 50px rgba(232, 74, 46, 0.8)) 
+                        drop-shadow(0 0 80px rgba(232, 74, 46, 0.6))
+                        drop-shadow(0 0 100px rgba(232, 74, 46, 0.4));
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+        
+        /* Login Screen */
+        .login-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--light-gray) 0%, var(--cream) 50%, var(--red) 100%);
+            justify-content: center;
+            align-items: center;
+            z-index: 9998;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .login-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: var(--shadow-heavy);
+            text-align: center;
+            min-width: 420px;
+            border: 1px solid rgba(255,255,255,0.3);
+            transform: translateY(20px);
+            animation: slideUp 0.6s ease-out 0.2s forwards;
+            opacity: 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-heavy), 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes slideUp {
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .login-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+        
+        .login-subtitle {
+            color: var(--dark-blue);
+            margin-bottom: 2.5rem;
+            font-weight: 400;
+            opacity: 0.8;
+            font-size: 1.1rem;
+            animation: fadeInUp 0.8s ease-out 0.5s both;
+        }
+        
+        .form-group {
+            margin-bottom: 1.8rem;
+            text-align: left;
+            animation: fadeInUp 0.8s ease-out 0.6s both;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.7rem;
+            color: var(--dark-blue);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            border: 2px solid transparent;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.7);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--red);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(232, 74, 46, 0.15);
+        }
+        
+        .btn {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 1rem 2.2rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+            box-shadow: 0 10px 20px rgba(232, 74, 46, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .btn:hover::after {
+            transform: translateX(0);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(232, 74, 46, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--red);
+            color: var(--red);
+        }
+        
+        .forgot-password {
+            color: var(--red);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: inline-block;
+            transition: opacity 0.3s;
+            font-weight: 500;
+        }
+        
+        .forgot-password:hover {
+            opacity: 0.8;
+        }
+        
+        .developers {
+            margin-top: 2.5rem;
+            font-size: 0.85rem;
+            color: var(--dark-blue);
+            opacity: 0.7;
+            line-height: 1.5;
+            animation: fadeInUp 0.8s ease-out 0.7s both;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Main Application */
+        .main-app {
+            display: none;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            color: var(--dark-blue);
+            transition: all var(--transition-speed) ease;
+            z-index: 100;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+        
+        .sidebar-header {
+            padding: 2rem 1.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-logo {
+            width: 48px;
+            height: 48px;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .sidebar-logo-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .sidebar.collapsed .sidebar-logo-text {
+            display: none;
+        }
+        
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            color: var(--dark-blue);
+            font-size: 1.3rem;
+            cursor: pointer;
+            margin-left: auto;
+            transition: transform 0.3s;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .toggle-sidebar:hover {
+            background: rgba(255,255,255,0.3);
+            animation: pulse 0.5s ease;
+        }
+        
+        .sidebar.collapsed .toggle-sidebar {
+            transform: rotate(180deg);
+            margin-left: 0;
+        }
+        
+        .nav-items {
+            padding: 1.5rem 0;
+            flex: 1;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: var(--dark-blue);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            gap: 1rem;
+            margin: 0.3rem 0.5rem;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        
+        .nav-item:hover::before {
+            opacity: 0.1;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateX(5px);
+        }
+        
+        .nav-item.active {
+            background: rgba(255,255,255,0.4);
+            border-left-color: var(--red);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .nav-item.active::before {
+            opacity: 0.1;
+        }
+        
+        .nav-icon {
+            font-size: 1.3rem;
+            width: 28px;
+            text-align: center;
+            color: var(--red);
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-item:hover .nav-icon {
+            transform: scale(1.1);
+        }
+        
+        .nav-label {
+            white-space: nowrap;
+            overflow: hidden;
+            font-weight: 600;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .sidebar.collapsed .nav-label {
+            display: none;
+        }
+        
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+        
+        .user-info {
+            white-space: nowrap;
+            overflow: hidden;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .user-info .username {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        
+        .user-info .role {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .sidebar.collapsed .user-info {
+            display: none;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--dark-blue);
+            cursor: pointer;
+            margin-left: auto;
+            transition: all 0.2s;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+            color: var(--red);
+            animation: pulse 0.5s ease;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: margin-left var(--transition-speed) ease;
+            min-height: 100vh;
+            background: rgba(246, 244, 241, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        .sidebar.collapsed ~ .main-content {
+            margin-left: var(--sidebar-collapsed);
+        }
+        
+        .content-header {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(15px);
+            padding: 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .content-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: var(--gradient-dark);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .content-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .content-body {
+            padding: 2.5rem;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-light);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(255,255,255,0.4);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .stat-icon {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1);
+        }
+        
+        .stat-number {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--red);
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover .stat-number {
+            transform: scale(1.05);
+        }
+        
+        .stat-label {
+            color: var(--dark-blue);
+            font-size: 1rem;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+        
+        /* Room Overview */
+        .room-overview {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid rgba(255,255,255,0.4);
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+        
+        .section-title {
+            font-size: 1.6rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-dark);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .room-card {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .room-card:hover {
+            background: rgba(232, 74, 46, 0.05);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-light);
+        }
+        
+        .room-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.8rem;
+            opacity: 0.8;
+            background: var(--gradient-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform 0.3s ease;
+        }
+        
+        .room-card:hover .room-icon {
+            transform: scale(1.1);
+        }
+        
+        .room-number {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark-blue);
+            margin-bottom: 0.5rem;
+        }
+        
+        .department-list {
+            font-size: 0.9rem;
+            color: var(--red);
+            opacity: 0.8;
+            font-weight: 500;
+        }
+        
+        /* Search and Filter */
+        .search-section {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(255,255,255,0.4);
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-input, .filter-select {
+            padding: 1rem 1.2rem;
+            border: 2px solid transparent;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.8);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+        
+        .search-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--red);
+            box-shadow: 0 0 0 4px rgba(232, 74, 46, 0.1);
+        }
+        
+        /* Results Table */
+        .results-section {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.4);
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+        
+        .department-group {
+            margin-bottom: 2.5rem;
+            animation: slideInRight 0.6s ease-out;
+        }
+        
+        .department-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 1.2rem 1.8rem;
+            border-radius: 14px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 15px rgba(232, 74, 46, 0.2);
+        }
+        
+        .room-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        
+        .dept-title {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .items-table th {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 1.2rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .items-table td {
+            padding: 1.2rem;
+            border-bottom: 1px solid var(--light-gray);
+            transition: background 0.2s ease;
+        }
+        
+        .items-table tr:hover {
+            background: rgba(232, 74, 46, 0.03);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.7rem;
+        }
+        
+        .action-btn {
+            padding: 0.5rem 0.9rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 500;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        
+        .edit-btn { background: var(--cream); color: var(--dark-blue); }
+        .archive-btn { background: var(--red); color: white; }
+        .view-btn { background: var(--light-gray); color: var(--dark-blue); }
+        
+        /* Enhanced Activity Log */
+        .activity-log {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid rgba(255,255,255,0.4);
+            max-height: 600px;
+            overflow-y: auto;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .activity-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.7rem 1.2rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .filter-btn.active {
+            background: var(--red);
+            color: white;
+            border-color: var(--red);
+        }
+        
+        .filter-btn:hover:not(.active) {
+            border-color: var(--red);
+        }
+        
+        .date-filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .date-input {
+            padding: 0.7rem 1rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 10px;
+            background: white;
+            font-size: 0.9rem;
+        }
+        
+        .export-btn {
+            margin-left: auto;
+        }
+        
+        .activity-item {
+            display: flex;
+            padding: 1.2rem;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: background 0.2s;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            background: rgba(255,255,255,0.7);
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .activity-item:hover {
+            background: rgba(255,255,255,0.9);
+            transform: translateX(5px);
+        }
+        
+        .activity-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.2rem;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .activity-item:hover .activity-icon {
+            transform: scale(1.1);
+        }
+        
+        .activity-icon.add { background: rgba(76, 175, 80, 0.1); color: var(--success); }
+        .activity-icon.edit { background: rgba(255, 152, 0, 0.1); color: var(--warning); }
+        .activity-icon.delete { background: rgba(244, 67, 54, 0.1); color: #F44336; }
+        .activity-icon.archive { background: rgba(156, 39, 176, 0.1); color: #9C27B0; }
+        .activity-icon.system { background: rgba(33, 150, 243, 0.1); color: var(--info); }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .activity-action {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .activity-time {
+            font-size: 0.85rem;
+            color: rgba(0,0,0,0.5);
+        }
+        
+        .activity-details {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+        
+        .activity-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: rgba(0,0,0,0.6);
+        }
+        
+        .activity-user {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .activity-user i {
+            color: var(--red);
+        }
+        
+        .no-activities {
+            text-align: center;
+            padding: 2rem;
+            color: rgba(0,0,0,0.5);
+            font-style: italic;
+        }
+        
+        /* Archive Section */
+        .archive-section {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.4);
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .archive-locked {
+            display: block;
+        }
+        
+        .archive-unlocked {
+            display: none;
+        }
+        
+        .password-input {
+            padding: 1rem 1.2rem;
+            border: 2px solid var(--red);
+            border-radius: 14px;
+            margin: 1.5rem 0;
+            font-size: 1rem;
+            width: 320px;
+            max-width: 100%;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 520px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-heavy);
+            animation: modalSlideIn 0.4s ease;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--gradient-dark);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--red);
+            transition: transform 0.2s;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(232, 74, 46, 0.1);
+        }
+        
+        .close-modal:hover {
+            transform: scale(1.1);
+            background: rgba(232, 74, 46, 0.2);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: var(--sidebar-collapsed);
+            }
+            .sidebar .nav-label,
+            .sidebar .sidebar-logo-text,
+            .sidebar .user-info {
+                display: none;
+            }
+            .main-content {
+                margin-left: var(--sidebar-collapsed);
+            }
+            .sidebar-header, .sidebar-footer {
+                justify-content: center;
+                padding: 1.5rem 1rem;
+            }
+            .toggle-sidebar {
+                margin-left: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .content-header {
+                padding: 1.5rem;
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+            .content-body {
+                padding: 1.5rem;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            .room-grid {
+                grid-template-columns: 1fr;
+            }
+            .items-table {
+                font-size: 0.9rem;
+            }
+            .items-table th,
+            .items-table td {
+                padding: 1rem 0.7rem;
+            }
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .login-card {
+                min-width: 90%;
+                margin: 1rem;
+            }
+            .activity-filters, .date-filters {
+                flex-direction: column;
+            }
+            .activity-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .activity-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .export-btn {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <img src="https://raw.githubusercontent.com/cumpio-markoliver/ngde/ec465fc8249a49835718042e7ac8c404d76544c4/20.png" alt="NEXIS" class="logo">
+        <div class="loading-text">NGDumlao Enterprise X Inventory System</div>
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-card">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <img src="https://raw.githubusercontent.com/cumpio-markoliver/ngde/ec465fc8249a49835718042e7ac8c404d76544c4/20.png" alt="NEXIS Logo" style="width: 60px; height: 60px;">
+                <h1 class="login-title">NEXIS</h1>
+    </div>
+    <p class="login-subtitle">NGDumlao Enterprise X Inventory System</p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-lock"></i>Login
+                </button>
+                <br>
+                <a href="#" class="forgot-password">Forgot Password?</a>
+            </form>
+            <div class="developers">
+                <p>Developed by: A1 PRODUCTIONS
+                    <br>
+                    For NGDumlao Enterprise Inc.
+                    <br>
+                    Shaw Blvd., Mandaluyong City
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div class="main-app" id="mainApp">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="https://raw.githubusercontent.com/cumpio-markoliver/ngde/ec465fc8249a49835718042e7ac8c404d76544c4/20.png" alt="NEXIS" class="sidebar-logo">
+                <div class="sidebar-logo-text">NEXIS</div>
+                <button class="toggle-sidebar" id="toggleSidebar">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <div class="nav-items">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="nav-icon fas fa-chart-pie"></i>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="inventory">
+                    <i class="nav-icon fas fa-boxes"></i>
+                    <span class="nav-label">Inventory</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="activity">
+                    <i class="nav-icon fas fa-history"></i>
+                    <span class="nav-label">Reports</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="archive">
+                    <i class="nav-icon fas fa-archive"></i>
+                    <span class="nav-label">Archive</span>
+                </a>
+            </div>
+            <div class="sidebar-footer">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-info">
+                    <div class="username" id="userName">User</div>
+                    <small class="role">Administrator</small>
+                </div>
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1 class="content-title" id="contentTitle">Dashboard</h1>
+                <div class="content-actions">
+                    <button class="btn btn-outline" id="helpBtn">
+                        <i class="fas fa-question-circle"></i>Help
+                    </button>
+                </div>
+            </div>
+            <div class="content-body">
+                <!-- Dashboard Tab -->
+                <div class="tab-content active" id="dashboard">
+                    <h2 class="section-title">Dashboard Overview</h2>
+                    <div class="dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-cube"></i>
+                            </div>
+                            <div class="stat-number" id="totalItems">0</div>
+                            <div class="stat-label">Total Items</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-number" id="lowStock">0</div>
+                            <div class="stat-label">Low Stock Alert</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-door-open"></i>
+                            </div>
+                            <div class="stat-number" id="totalRooms">4</div>
+                            <div class="stat-label">Total Rooms</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="stat-number" id="totalDepartments">0</div>
+                            <div class="stat-label">Total Departments</div>
+                        </div>
+                    </div>
+                    <div class="room-overview">
+                        <h3 class="section-title">Room Overview</h3>
+                        <div class="room-grid" id="roomGrid">
+                            <!-- Room cards will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="activity-log">
+                        <h3 class="section-title">Recent Activity</h3>
+                        <div id="recentActivity">
+                            <!-- Activity items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room Inventory Tab -->
+                <div class="tab-content" id="inventory">
+                    <h2 class="section-title">Inventory</h2>
+                    <div class="search-section">
+                        <h3 class="section-title">Search & Filter</h3>
+                        <div class="search-grid">
+                            <input type="text" class="search-input" id="searchInput" placeholder="Search by item code, description, or initials...">
+                            <select class="filter-select" id="roomFilter">
+                                <option value="">All Rooms</option>
+                            </select>
+                            <select class="filter-select" id="departmentFilter">
+                                <option value="">All Departments</option>
+                            </select>
+                            <button class="btn" onclick="searchItems()">
+                                <i class="fas fa-search"></i>Search
+                            </button>
+                        </div>
+                        <div style="margin-top: 1.5rem;">
+                            <button class="btn" onclick="showAddItemModal()">
+                                <i class="fas fa-plus"></i>Add New Item
+                            </button>
+                            <button class="btn btn-outline" onclick="exportItems()">
+                                <i class="fas fa-file-export"></i>Export Selected
+                            </button>
+                        </div>
+                    </div>
+                    <div class="results-section" id="searchResults">
+                        <p>Use the search filters above to find items in the inventory.</p>
+                    </div>
+                </div>
+
+                <!-- Activity Log Tab -->
+                <div class="tab-content" id="activity">
+                    <h2 class="section-title">Activity Log</h2>
+                    <div class="activity-filters">
+                        <button class="filter-btn active" data-filter="all">All Activities</button>
+                        <button class="filter-btn" data-filter="item">Items</button>
+                        <button class="filter-btn" data-filter="room">Rooms</button>
+                        <button class="filter-btn" data-filter="department">Departments</button>
+                        <button class="filter-btn" data-filter="system">System</button>
+                    </div>
+                    <div class="date-filters">
+                        <input type="date" class="date-input" id="startDate">
+                        <span>to</span>
+                        <input type="date" class="date-input" id="endDate">
+                        <button class="btn" onclick="filterByDate()">
+                            <i class="fas fa-filter"></i>Filter by Date
+                        </button>
+                        <button class="btn btn-outline export-btn" onclick="exportActivityLog()">
+                            <i class="fas fa-file-export"></i>Export Activity Log
+                        </button>
+                    </div>
+                    <div class="activity-log">
+                        <div id="fullActivityLog">
+                            <!-- Full activity log will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archive Tab -->
+                <div class="tab-content" id="archive">
+                    <h2 class="section-title">Archived Items</h2>
+                    <div class="archive-section">
+                        <div class="archive-locked" id="archiveLocked">
+                            <h3>Access Restricted</h3>
+                            <p>Enter password to view archived items:</p>
+                            <input type="password" class="password-input" id="archivePassword" placeholder="Enter password">
+                            <br>
+                            <button class="btn" onclick="unlockArchive()">
+                                <i class="fas fa-unlock"></i>Unlock Archive
+                            </button>
+                        </div>
+                        <div class="archive-unlocked" id="archiveUnlocked">
+                            <h3>Archived Items</h3>
+                            <div id="archivedItems">
+                                <p>No archived items found.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div class="modal" id="addItemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Item</h3>
+                <button class="close-modal" onclick="closeModal('addItemModal')">×</button>
+            </div>
+            <form id="addItemForm">
+                <div class="form-group">
+                    <label>Room</label>
+                    <select id="modalRoomSelect" required>
+                        <option value="">Select Room</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select id="modalDepartmentSelect" required>
+                        <option value="">Select Department</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="itemName" required placeholder="e.g., CHAIR">
+                </div>
+                <div class="form-group">
+                    <label>Item Description</label>
+                    <input type="text" id="itemDescription" required placeholder="e.g., EXECUTIVE CHAIR">
+                </div>
+                <div class="form-group">
+                    <label>Issued To (Initials)</label>
+                    <input type="text" id="itemInitials" placeholder="e.g., NGD">
+                </div>
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <input type="text" id="itemRemarks" placeholder="e.g., Good">
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-plus"></i>Add Item
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Room Modal -->
+    <div class="modal" id="addRoomModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Room</h3>
+                <button class="close-modal" onclick="closeModal('addRoomModal')">×</button>
+            </div>
+            <form id="addRoomForm">
+                <div class="form-group">
+                    <label>Room Number</label>
+                    <input type="text" id="roomNumber" required placeholder="e.g., 1105">
+                </div>
+                <div class="form-group">
+                    <label>Room Description</label>
+                    <input type="text" id="roomDescription" placeholder="e.g., Executive Office">
+                </div>
+                <button type="submit" class="btn">
+                    <i class="fas fa-plus"></i>Add Room
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced inventory data with more details
+        const inventoryData = {
+            "1101": {
+                "CEO": [
+                    { code: "MSM-EXT-001", description: "EXECUTIVE TABLE", initials: "NGD", remarks: "Good", dateAdded: "2023-06-14" },
+                    { code: "MSM-CHABR-001", description: "CHAIR BROWN", initials: "NGD", remarks: "Good", dateAdded: "2023-06-14" }
+                ],
+                "RECEPTION": [
+                    { code: "MSM-STW-001", description: "STANDARD TABLE WHITE", initials: "CHM", remarks: "Good", dateAdded: "2023-06-13" },
+                    { code: "MSM-STW-002", description: "STANDARD TABLE WHITE", initials: "CDV", remarks: "Good", dateAdded: "2023-06-13" }
+                ]
+            },
+            "1102": {
+                "IT": [
+                    { code: "MSM-LTBR-TABLE-004", description: "L-TYPE BROWN TABLE", initials: "JCD", remarks: "Good", dateAdded: "2023-06-12" },
+                    { code: "MSM-MCW-047", description: "MOBILE CABINET WHITE", initials: "AJL", remarks: "Good", dateAdded: "2023-06-12" }
+                ],
+                "DRAFTING 1": [
+                    { code: "MSM-LTBR-TABLE-002", description: "L- TYPE BROWN TABLE", initials: "RBM", remarks: "Good", dateAdded: "2023-06-11" },
+                    { code: "MSM-LTBR-TABLE-004", description: "L-TYPE BROWN TABLE", initials: "PGH", remarks: "Good", dateAdded: "2023-06-11" }
+                ]
+            },
+            "1103": {
+                "HR": [
+                    { code: "MSM-DSK-015", description: "DESK ORGANIZER", initials: "LMR", remarks: "Good", dateAdded: "2023-06-10" },
+                    { code: "MSM-FCH-008", description: "FOLDING CHAIR", initials: "KTS", remarks: "Good", dateAdded: "2023-06-10" }
+                ]
+            },
+            "1104": {
+                "ACCOUNTING": [
+                    { code: "MSM-CAB-022", description: "FILING CABINET", initials: "MJS", remarks: "Good", dateAdded: "2023-06-09" },
+                    { code: "MSM-BKS-011", description: "BOOKSHELF", initials: "RPT", remarks: "Good", dateAdded: "2023-06-09" }
+                ]
+            }
+        };
+
+        // Enhanced activity log data with inventory-focused entries
+        let activityLog = [
+            { 
+                id: 1,
+                type: "system",
+                action: "User Login", 
+                details: "User 'admin' logged into the system", 
+                user: "admin", 
+                time: "2023-06-15 10:30:15",
+                entity: "system",
+                changes: null
+            },
+            { 
+                id: 2,
+                type: "item",
+                action: "Item Added", 
+                details: "MSM-EXT-001 (EXECUTIVE TABLE) added to inventory", 
+                user: "admin", 
+                time: "2023-06-14 14:22:45",
+                entity: "item",
+                changes: {
+                    room: "1101",
+                    department: "CEO",
+                    itemCode: "MSM-EXT-001",
+                    description: "EXECUTIVE TABLE",
+                    initials: "NGD",
+                    remarks: "Good"
+                }
+            },
+            { 
+                id: 3,
+                type: "item",
+                action: "Item Archived", 
+                details: "MSM-CHABR-003 archived from Room 1101, CEO", 
+                user: "admin", 
+                time: "2023-06-13 16:45:12",
+                entity: "item",
+                changes: {
+                    room: "1101",
+                    department: "CEO",
+                    itemCode: "MSM-CHABR-003",
+                    description: "CHAIR BROWN",
+                    initials: "NGD"
+                }
+            },
+            { 
+                id: 4,
+                type: "room",
+                action: "Room Updated", 
+                details: "Room 1102 departments updated", 
+                user: "manager", 
+                time: "2023-06-12 11:20:05",
+                entity: "room",
+                changes: {
+                    room: "1102",
+                    departments: ["IT", "DRAFTING 1"]
+                }
+            },
+            { 
+                id: 5,
+                type: "department",
+                action: "Department Added", 
+                details: "New department 'HR' added to Room 1101", 
+                user: "admin", 
+                time: "2023-06-11 09:15:30",
+                entity: "department",
+                changes: {
+                    room: "1101",
+                    department: "HR"
+                }
+            },
+            { 
+                id: 6,
+                type: "item",
+                action: "Item Edited", 
+                details: "MSM-STW-001 description updated", 
+                user: "admin", 
+                time: "2023-06-10 14:30:22",
+                entity: "item",
+                changes: {
+                    room: "1101",
+                    department: "RECEPTION",
+                    itemCode: "MSM-STW-001",
+                    description: "STANDARD TABLE WHITE (UPDATED)",
+                    initials: "CHM"
+                }
+            },
+            { 
+                id: 7,
+                type: "item",
+                action: "Low Stock Alert", 
+                details: "MSM-MCW-047 stock level is low", 
+                user: "system", 
+                time: "2023-06-09 08:45:33",
+                entity: "item",
+                changes: {
+                    room: "1102",
+                    department: "IT",
+                    itemCode: "MSM-MCW-047",
+                    description: "MOBILE CABINET WHITE",
+                    stockLevel: "Low"
+                }
+            }
+        ];
+
+        let archivedItems = [];
+        let currentUser = '';
+        let isArchiveUnlocked = false;
+        let nextActivityId = 8;
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show loading screen for 4 seconds, then show login
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'flex';
+            }, 4000);
+
+            // Initialize sidebar toggle
+            document.getElementById('toggleSidebar').addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('collapsed');
+            });
+
+            // Initialize navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all items
+                    document.querySelectorAll('.nav-item').forEach(nav => {
+                        nav.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Show corresponding tab
+                    const tabName = this.getAttribute('data-tab');
+                    showTab(tabName);
+                });
+            });
+
+            // Initialize activity filters
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const filter = this.getAttribute('data-filter');
+                    displayFullActivityLog(filter);
+                });
+            });
+
+            // Set default date values for activity log
+            const today = new Date();
+            const oneWeekAgo = new Date(today);
+            oneWeekAgo.setDate(today.getDate() - 7);
+            
+            document.getElementById('startDate').valueAsDate = oneWeekAgo;
+            document.getElementById('endDate').valueAsDate = today;
+
+            // Auto-login for demo purposes
+            setTimeout(() => {
+                document.getElementById('username').value = 'admin';
+                document.getElementById('password').value = 'password';
+            }, 100);
+        });
+
+        // Login functionality
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Simple authentication
+            if (username && password) {
+                currentUser = username;
+                document.getElementById('userName').textContent = username;
+                document.getElementById('userAvatar').textContent = username.charAt(0).toUpperCase();
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+
+                // Log activity
+                logActivity('system', 'User Login', `User '${username}' logged into the system`, null, 'system');
+
+                // Initialize data after login
+                setTimeout(() => {
+                    updateDashboardStats();
+                    populateRoomOverview();
+                    populateFilterDropdowns();
+                    displayRecentActivity();
+                    displayFullActivityLog('all');
+                    
+                    // Show all items in inventory by default
+                    searchItems();
+                }, 100);
+            } else {
+                alert('Please enter valid credentials');
+            }
+        });
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Update content title
+            const titles = {
+                'dashboard': 'Dashboard',
+                'inventory': 'Room Inventory',
+                'activity': 'Activity Log',
+                'archive': 'Archive'
+            };
+            document.getElementById('contentTitle').textContent = titles[tabName];
+            
+            // Auto-search when switching to inventory tab
+            if (tabName === 'inventory') {
+                setTimeout(() => {
+                    searchItems();
+                }, 100);
+            }
+            
+            // Refresh activity log when switching to activity tab
+            if (tabName === 'activity') {
+                const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+                displayFullActivityLog(activeFilter);
+            }
+        }
+
+        // Dashboard functions
+        function updateDashboardStats() {
+            let totalItems = 0;
+            let totalDepartments = 0;
+            
+            Object.keys(inventoryData).forEach(room => {
+                Object.keys(inventoryData[room]).forEach(dept => {
+                    totalItems += inventoryData[room][dept].length;
+                    totalDepartments++;
+                });
+            });
+            
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('totalDepartments').textContent = totalDepartments;
+            document.getElementById('lowStock').textContent = '5'; // Mock low stock alert
+            document.getElementById('totalRooms').textContent = Object.keys(inventoryData).length;
+        }
+
+        function populateRoomOverview() {
+            const roomGrid = document.getElementById('roomGrid');
+            if (!roomGrid) return;
+            
+            roomGrid.innerHTML = '';
+            
+            Object.keys(inventoryData).forEach(roomNum => {
+                const departments = Object.keys(inventoryData[roomNum]);
+                const departmentCount = departments.length;
+                const itemCount = departments.reduce((total, dept) => total + inventoryData[roomNum][dept].length, 0);
+                
+                const roomCard = document.createElement('div');
+                roomCard.className = 'room-card';
+                roomCard.innerHTML = `
+                    <div class="room-icon"><i class="fas fa-door-closed"></i></div>
+                    <div class="room-number">Room ${roomNum}</div>
+                    <div class="department-list">${departmentCount} departments, ${itemCount} items</div>
+                    <div style="margin-top: 1rem;">
+                        <button class="action-btn edit-btn" onclick="editRoom('${roomNum}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </div>
+                `;
+                roomGrid.appendChild(roomCard);
+            });
+            
+            // Add "Add Room" card
+            const addRoomCard = document.createElement('div');
+            addRoomCard.className = 'room-card';
+            addRoomCard.style.cursor = 'pointer';
+            addRoomCard.innerHTML = `
+                <div class="room-icon"><i class="fas fa-plus-circle"></i></div>
+                <div class="room-number">Add New Room</div>
+                <div class="department-list">Click to add a new room</div>
+            `;
+            addRoomCard.addEventListener('click', function() {
+                showAddRoomModal();
+            });
+            roomGrid.appendChild(addRoomCard);
+        }
+
+        function populateFilterDropdowns() {
+            const roomFilter = document.getElementById('roomFilter');
+            const modalRoomSelect = document.getElementById('modalRoomSelect');
+            const departmentFilter = document.getElementById('departmentFilter');
+            const modalDepartmentSelect = document.getElementById('modalDepartmentSelect');
+            
+            // Clear existing options
+            roomFilter.innerHTML = '<option value="">All Rooms</option>';
+            modalRoomSelect.innerHTML = '<option value="">Select Room</option>';
+            departmentFilter.innerHTML = '<option value="">All Departments</option>';
+            modalDepartmentSelect.innerHTML = '<option value="">Select Department</option>';
+            
+            // Add room options
+            Object.keys(inventoryData).forEach(room => {
+                const option1 = document.createElement('option');
+                option1.value = room;
+                option1.textContent = `Room ${room}`;
+                roomFilter.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = room;
+                option2.textContent = `Room ${room}`;
+                modalRoomSelect.appendChild(option2);
+            });
+            
+            // Add department options
+            const allDepartments = new Set();
+            Object.keys(inventoryData).forEach(room => {
+                Object.keys(inventoryData[room]).forEach(dept => {
+                    allDepartments.add(dept);
+                });
+            });
+            
+            allDepartments.forEach(dept => {
+                const option1 = document.createElement('option');
+                option1.value = dept;
+                option1.textContent = dept;
+                departmentFilter.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = dept;
+                option2.textContent = dept;
+                modalDepartmentSelect.appendChild(option2);
+            });
+        }
+
+        // Enhanced Activity Log functions
+        function logActivity(type, action, details, changes, entity) {
+            const timestamp = new Date().toLocaleString();
+            const activity = {
+                id: nextActivityId++,
+                type: type,
+                action: action,
+                details: details,
+                user: currentUser,
+                time: timestamp,
+                entity: entity,
+                changes: changes
+            };
+            
+            activityLog.unshift(activity);
+            
+            // Update displays if on relevant tabs
+            if (document.getElementById('dashboard').classList.contains('active')) {
+                displayRecentActivity();
+            }
+            
+            if (document.getElementById('activity').classList.contains('active')) {
+                const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+                displayFullActivityLog(activeFilter);
+            }
+            
+            return activity.id;
+        }
+
+        function displayRecentActivity() {
+            const activityContainer = document.getElementById('recentActivity');
+            if (!activityContainer) return;
+            
+            activityContainer.innerHTML = '';
+            
+            // Show only the 5 most recent activities
+            const recentActivities = activityLog.slice(0, 5);
+            
+            if (recentActivities.length === 0) {
+                activityContainer.innerHTML = '<div class="no-activities">No recent activities</div>';
+                return;
+            }
+            
+            recentActivities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                // Determine icon and class based on activity type
+                let iconClass = '';
+                let icon = '';
+                
+                switch(activity.type) {
+                    case 'item':
+                        iconClass = activity.action.includes('Added') ? 'add' : 
+                                   activity.action.includes('Edit') ? 'edit' : 
+                                   activity.action.includes('Delete') ? 'delete' : 
+                                   activity.action.includes('Alert') ? 'system' : 'archive';
+                        icon = activity.action.includes('Added') ? 'fa-plus-circle' : 
+                              activity.action.includes('Edit') ? 'fa-edit' : 
+                              activity.action.includes('Delete') ? 'fa-trash' : 
+                              activity.action.includes('Alert') ? 'fa-exclamation-triangle' : 'fa-archive';
+                        break;
+                    case 'room':
+                        iconClass = 'edit';
+                        icon = 'fa-door-open';
+                        break;
+                    case 'department':
+                        iconClass = 'edit';
+                        icon = 'fa-building';
+                        break;
+                    case 'system':
+                        iconClass = 'system';
+                        icon = 'fa-cog';
+                        break;
+                    default:
+                        iconClass = 'system';
+                        icon = 'fa-info-circle';
+                }
+                
+                activityItem.innerHTML = `
+                    <div class="activity-icon ${iconClass}">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-header">
+                            <div class="activity-action">${activity.action}</div>
+                            <div class="activity-time">${activity.time}</div>
+                        </div>
+                        <div class="activity-details">${activity.details}</div>
+                        <div class="activity-meta">
+                            <div class="activity-user">
+                                <i class="fas fa-user"></i> ${activity.user}
+                            </div>
+                            <div>${activity.entity.charAt(0).toUpperCase() + activity.entity.slice(1)}</div>
+                        </div>
+                    </div>
+                `;
+                activityContainer.appendChild(activityItem);
+            });
+        }
+
+        function displayFullActivityLog(filter = 'all') {
+            const activityContainer = document.getElementById('fullActivityLog');
+            if (!activityContainer) return;
+            
+            activityContainer.innerHTML = '';
+            
+            let filteredActivities = activityLog;
+            
+            if (filter !== 'all') {
+                filteredActivities = activityLog.filter(activity => activity.type === filter);
+            }
+            
+            if (filteredActivities.length === 0) {
+                activityContainer.innerHTML = '<div class="no-activities">No activities found</div>';
+                return;
+            }
+            
+            filteredActivities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                // Determine icon and class based on activity type
+                let iconClass = '';
+                let icon = '';
+                
+                switch(activity.type) {
+                    case 'item':
+                        iconClass = activity.action.includes('Added') ? 'add' : 
+                                   activity.action.includes('Edit') ? 'edit' : 
+                                   activity.action.includes('Delete') ? 'delete' : 
+                                   activity.action.includes('Alert') ? 'system' : 'archive';
+                        icon = activity.action.includes('Added') ? 'fa-plus-circle' : 
+                              activity.action.includes('Edit') ? 'fa-edit' : 
+                              activity.action.includes('Delete') ? 'fa-trash' : 
+                              activity.action.includes('Alert') ? 'fa-exclamation-triangle' : 'fa-archive';
+                        break;
+                    case 'room':
+                        iconClass = 'edit';
+                        icon = 'fa-door-open';
+                        break;
+                    case 'department':
+                        iconClass = 'edit';
+                        icon = 'fa-building';
+                        break;
+                    case 'system':
+                        iconClass = 'system';
+                        icon = 'fa-cog';
+                        break;
+                    default:
+                        iconClass = 'system';
+                        icon = 'fa-info-circle';
+                }
+                
+                // Build changes details if available
+                let changesHtml = '';
+                if (activity.changes) {
+                    changesHtml = `<div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.03); border-radius: 5px; font-size: 0.85rem;">
+                        <strong>Changes:</strong> ${JSON.stringify(activity.changes, null, 2).replace(/{|}|"|,/g, ' ').replace(/\s+/g, ' ')}
+                    </div>`;
+                }
+                
+                activityItem.innerHTML = `
+                    <div class="activity-icon ${iconClass}">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-header">
+                            <div class="activity-action">${activity.action}</div>
+                            <div class="activity-time">${activity.time}</div>
+                        </div>
+                        <div class="activity-details">${activity.details}</div>
+                        ${changesHtml}
+                        <div class="activity-meta">
+                            <div class="activity-user">
+                                <i class="fas fa-user"></i> ${activity.user}
+                            </div>
+                            <div>${activity.entity.charAt(0).toUpperCase() + activity.entity.slice(1)}</div>
+                            <div>ID: ${activity.id}</div>
+                        </div>
+                    </div>
+                `;
+                activityContainer.appendChild(activityItem);
+            });
+        }
+
+        // Date filtering for activity log
+        function filterByDate() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999); // Set to end of day
+            
+            let filteredActivities = activityLog;
+            
+            if (activeFilter !== 'all') {
+                filteredActivities = activityLog.filter(activity => activity.type === activeFilter);
+            }
+            
+            filteredActivities = filteredActivities.filter(activity => {
+                const activityDate = new Date(activity.time);
+                return activityDate >= start && activityDate <= end;
+            });
+            
+            displayFilteredActivities(filteredActivities);
+        }
+
+        function displayFilteredActivities(activities) {
+            const activityContainer = document.getElementById('fullActivityLog');
+            if (!activityContainer) return;
+            
+            activityContainer.innerHTML = '';
+            
+            if (activities.length === 0) {
+                activityContainer.innerHTML = '<div class="no-activities">No activities found for the selected date range</div>';
+                return;
+            }
+            
+            activities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                // Determine icon and class based on activity type
+                let iconClass = '';
+                let icon = '';
+                
+                switch(activity.type) {
+                    case 'item':
+                        iconClass = activity.action.includes('Added') ? 'add' : 
+                                   activity.action.includes('Edit') ? 'edit' : 
+                                   activity.action.includes('Delete') ? 'delete' : 
+                                   activity.action.includes('Alert') ? 'system' : 'archive';
+                        icon = activity.action.includes('Added') ? 'fa-plus-circle' : 
+                              activity.action.includes('Edit') ? 'fa-edit' : 
+                              activity.action.includes('Delete') ? 'fa-trash' : 
+                              activity.action.includes('Alert') ? 'fa-exclamation-triangle' : 'fa-archive';
+                        break;
+                    case 'room':
+                        iconClass = 'edit';
+                        icon = 'fa-door-open';
+                        break;
+                    case 'department':
+                        iconClass = 'edit';
+                        icon = 'fa-building';
+                        break;
+                    case 'system':
+                        iconClass = 'system';
+                        icon = 'fa-cog';
+                        break;
+                    default:
+                        iconClass = 'system';
+                        icon = 'fa-info-circle';
+                }
+                
+                // Build changes details if available
+                let changesHtml = '';
+                if (activity.changes) {
+                    changesHtml = `<div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.03); border-radius: 5px; font-size: 0.85rem;">
+                        <strong>Changes:</strong> ${JSON.stringify(activity.changes, null, 2).replace(/{|}|"|,/g, ' ').replace(/\s+/g, ' ')}
+                    </div>`;
+                }
+                
+                activityItem.innerHTML = `
+                    <div class="activity-icon ${iconClass}">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-header">
+                            <div class="activity-action">${activity.action}</div>
+                            <div class="activity-time">${activity.time}</div>
+                        </div>
+                        <div class="activity-details">${activity.details}</div>
+                        ${changesHtml}
+                        <div class="activity-meta">
+                            <div class="activity-user">
+                                <i class="fas fa-user"></i> ${activity.user}
+                            </div>
+                            <div>${activity.entity.charAt(0).toUpperCase() + activity.entity.slice(1)}</div>
+                            <div>ID: ${activity.id}</div>
+                        </div>
+                    </div>
+                `;
+                activityContainer.appendChild(activityItem);
+            });
+        }
+
+        // Export functionality
+        function exportActivityLog() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+            
+            let activitiesToExport = activityLog;
+            
+            if (activeFilter !== 'all') {
+                activitiesToExport = activityLog.filter(activity => activity.type === activeFilter);
+            }
+            
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                
+                activitiesToExport = activitiesToExport.filter(activity => {
+                    const activityDate = new Date(activity.time);
+                    return activityDate >= start && activityDate <= end;
+                });
+            }
+            
+            if (activitiesToExport.length === 0) {
+                alert('No activities to export');
+                return;
+            }
+            
+            // Create CSV content
+            let csvContent = "ID,Action,Details,User,Time,Entity\n";
+            
+            activitiesToExport.forEach(activity => {
+                const row = [
+                    activity.id,
+                    `"${activity.action}"`,
+                    `"${activity.details}"`,
+                    activity.user,
+                    activity.time,
+                    activity.entity
+                ].join(',');
+                
+                csvContent += row + '\n';
+            });
+            
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `activity-log-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Log export activity
+            logActivity('system', 'Export Generated', 'Activity log exported to CSV', {
+                filter: activeFilter,
+                dateRange: `${startDate} to ${endDate}`,
+                recordCount: activitiesToExport.length
+            }, 'system');
+            
+            alert(`Exported ${activitiesToExport.length} activities to CSV`);
+        }
+
+        // Search functionality
+        function searchItems() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const roomFilter = document.getElementById('roomFilter').value;
+            const departmentFilter = document.getElementById('departmentFilter').value;
+            const resultsContainer = document.getElementById('searchResults');
+            
+            let results = [];
+            
+            Object.keys(inventoryData).forEach(room => {
+                if (!roomFilter || room === roomFilter) {
+                    Object.keys(inventoryData[room]).forEach(dept => {
+                        if (!departmentFilter || dept === departmentFilter) {
+                            inventoryData[room][dept].forEach(item => {
+                                const matchesSearch = !searchTerm || 
+                                    item.code.toLowerCase().includes(searchTerm) ||
+                                    item.description.toLowerCase().includes(searchTerm) ||
+                                    item.initials.toLowerCase().includes(searchTerm);
+                                
+                                if (matchesSearch) {
+                                    results.push({
+                                        room: room,
+                                        department: dept,
+                                        item: item
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+            
+            displaySearchResults(results);
+        }
+
+        function displaySearchResults(results) {
+            const resultsContainer = document.getElementById('searchResults');
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p>No items found matching your search criteria.</p>';
+                return;
+            }
+            
+            // Group results by room and department
+            const grouped = {};
+            
+            results.forEach(result => {
+                const key = `${result.room}-${result.department}`;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        room: result.room,
+                        department: result.department,
+                        items: []
+                    };
+                }
+                grouped[key].items.push(result.item);
+            });
+            
+            let html = '';
+            
+            Object.keys(grouped).forEach(key => {
+                const group = grouped[key];
+                html += `
+                    <div class="department-group">
+                        <div class="department-header">
+                            <div class="room-title">Room ${group.room}</div>
+                            <div class="dept-title">${group.department}</div>
+                        </div>
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Item Code</th>
+                                    <th>Item Description</th>
+                                    <th>Issued To</th>
+                                    <th>Remarks</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                group.items.forEach(item => {
+                    html += `
+                        <tr>
+                            <td>${item.code}</td>
+                            <td>${item.description}</td>
+                            <td>${item.initials}</td>
+                            <td>${item.remarks}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn view-btn" onclick="viewItem('${item.code}')" title="View Details">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    <button class="action-btn edit-btn" onclick="editItem('${item.code}')" title="Edit Item">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="action-btn archive-btn" onclick="archiveItem('${item.code}', '${group.room}', '${group.department}')" title="Archive Item">
+                                        <i class="fas fa-archive"></i> Archive
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            resultsContainer.innerHTML = html;
+        }
+
+        // Item management functions
+        function showAddItemModal() {
+            document.getElementById('addItemModal').style.display = 'flex';
+        }
+
+        function showAddRoomModal() {
+            document.getElementById('addRoomModal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        document.getElementById('addItemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const room = document.getElementById('modalRoomSelect').value;
+            const department = document.getElementById('modalDepartmentSelect').value;
+            const itemName = document.getElementById('itemName').value.toUpperCase();
+            const description = document.getElementById('itemDescription').value.toUpperCase();
+            const initials = document.getElementById('itemInitials').value.toUpperCase();
+            const remarks = document.getElementById('itemRemarks').value;
+            
+            // Generate item code
+            const existingItems = inventoryData[room][department] || [];
+            const itemCount = existingItems.length + 1;
+            const itemCode = `MSM-${itemName}-${itemCount.toString().padStart(3, '0')}`;
+            
+            const newItem = {
+                code: itemCode,
+                description: description,
+                initials: initials,
+                remarks: remarks,
+                dateAdded: new Date().toISOString().split('T')[0]
+            };
+            
+            // Add to inventory
+            if (!inventoryData[room]) inventoryData[room] = {};
+            if (!inventoryData[room][department]) inventoryData[room][department] = [];
+            inventoryData[room][department].push(newItem);
+            
+            // Log activity with detailed changes
+            const changes = {
+                room: room,
+                department: department,
+                itemCode: itemCode,
+                description: description,
+                initials: initials,
+                remarks: remarks
+            };
+            
+            logActivity('item', 'Item Added', `${itemCode} (${description}) added to Room ${room}, ${department}`, changes, 'item');
+            
+            // Update dashboard
+            updateDashboardStats();
+            populateRoomOverview();
+            populateFilterDropdowns();
+            
+            // Close modal and clear form
+            closeModal('addItemModal');
+            document.getElementById('addItemForm').reset();
+            
+            // Refresh search results
+            searchItems();
+            
+            alert('Item added successfully!');
+        });
+
+        document.getElementById('addRoomForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const roomNumber = document.getElementById('roomNumber').value;
+            const roomDescription = document.getElementById('roomDescription').value;
+            
+            // Add new room
+            if (!inventoryData[roomNumber]) {
+                inventoryData[roomNumber] = {};
+                
+                // Log activity
+                const changes = {
+                    room: roomNumber,
+                    description: roomDescription
+                };
+                
+                logActivity('room', 'Room Added', `Room ${roomNumber} (${roomDescription}) added to inventory`, changes, 'room');
+                
+                // Update displays
+                updateDashboardStats();
+                populateRoomOverview();
+                populateFilterDropdowns();
+                
+                // Close modal and clear form
+                closeModal('addRoomModal');
+                document.getElementById('addRoomForm').reset();
+                
+                alert('Room added successfully!');
+            } else {
+                alert('Room already exists!');
+            }
+        });
+
+        function editRoom(roomNum) {
+            const newDept = prompt(`Enter new department name to add to Room ${roomNum}:`);
+            if (newDept && newDept.trim() !== '') {
+                const deptName = newDept.trim().toUpperCase();
+                
+                if (!inventoryData[roomNum][deptName]) {
+                    inventoryData[roomNum][deptName] = [];
+                    
+                    // Log activity
+                    const changes = {
+                        room: roomNum,
+                        department: deptName
+                    };
+                    
+                    logActivity('department', 'Department Added', `Department '${deptName}' added to Room ${roomNum}`, changes, 'department');
+                    
+                    // Update displays
+                    updateDashboardStats();
+                    populateRoomOverview();
+                    populateFilterDropdowns();
+                    
+                    alert(`Department '${deptName}' added to Room ${roomNum}`);
+                } else {
+                    alert('Department already exists in this room!');
+                }
+            }
+        }
+
+        function viewItem(itemCode) {
+            alert(`Viewing details for item: ${itemCode}`);
+        }
+
+        function editItem(itemCode) {
+            alert(`Editing item: ${itemCode} - This would open an edit form in a real application`);
+        }
+
+        function archiveItem(itemCode, room, department) {
+            if (confirm(`Are you sure you want to archive item ${itemCode}? This action will move it to the archive.`)) {
+                // Find and remove item from inventory
+                const itemIndex = inventoryData[room][department].findIndex(item => item.code === itemCode);
+                
+                if (itemIndex !== -1) {
+                    const item = inventoryData[room][department][itemIndex];
+                    inventoryData[room][department].splice(itemIndex, 1);
+                    
+                    // Add to archived items
+                    archivedItems.push({
+                        ...item,
+                        room: room,
+                        department: department,
+                        archivedDate: new Date().toLocaleDateString(),
+                        dispatchReason: 'User archived'
+                    });
+                    
+                    // Log activity
+                    const changes = {
+                        room: room,
+                        department: department,
+                        itemCode: itemCode,
+                        description: item.description
+                    };
+                    
+                    logActivity('item', 'Item Archived', `${itemCode} (${item.description}) archived from Room ${room}, ${department}`, changes, 'item');
+                    
+                    // Update dashboard
+                    updateDashboardStats();
+                    populateRoomOverview();
+                    
+                    // Refresh search results
+                    searchItems();
+                    
+                    alert('Item archived successfully!');
+                }
+            }
+        }
+
+        function exportItems() {
+            alert('Export functionality would generate an Excel file with selected items.');
+            logActivity('system', 'Export Generated', 'Inventory data exported to Excel', null, 'system');
+        }
+
+        // Archive functionality
+        function unlockArchive() {
+            const password = document.getElementById('archivePassword').value;
+            
+            // Simple password check
+            if (password === 'archive123') {
+                document.getElementById('archiveLocked').style.display = 'none';
+                document.getElementById('archiveUnlocked').style.display = 'block';
+                displayArchivedItems();
+                isArchiveUnlocked = true;
+                
+                logActivity('system', 'Archive Accessed', 'User accessed archived items', null, 'system');
+            } else {
+                alert('Incorrect password');
+            }
+        }
+
+        function displayArchivedItems() {
+            const archivedContainer = document.getElementById('archivedItems');
+            
+            if (archivedItems.length === 0) {
+                archivedContainer.innerHTML = '<p>No archived items found.</p>';
+                return;
+            }
+            
+            let html = '<table class="items-table"><thead><tr><th>Item Code</th><th>Description</th><th>Room</th><th>Department</th><th>Archived Date</th><th>Reason</th></tr></thead><tbody>';
+            
+            archivedItems.forEach(item => {
+                html += `
+                    <tr>
+                        <td>${item.code}</td>
+                        <td>${item.description}</td>
+                        <td>${item.room}</td>
+                        <td>${item.department}</td>
+                        <td>${item.archivedDate}</td>
+                        <td>${item.dispatchReason}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            archivedContainer.innerHTML = html;
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'flex';
+                
+                // Reset archive unlock status
+                isArchiveUnlocked = false;
+                document.getElementById('archiveLocked').style.display = 'block';
+                document.getElementById('archiveUnlocked').style.display = 'none';
+                document.getElementById('archivePassword').value = '';
+                
+                // Clear login form
+                document.getElementById('loginForm').reset();
+                
+                // Log activity
+                logActivity('system', 'User Logout', `User '${currentUser}' logged out`, null, 'system');
+            }
+        }
+    </script>
+</body>
+</html>
