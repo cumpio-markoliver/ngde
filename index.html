@@ -1,0 +1,2611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXIS - Inventory Management System</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #FFFFFF;
+            color: #0A2538;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Login Screen Styles */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0A2538 0%, #0A0D0F 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10002;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            width: 400px;
+            text-align: center;
+            color: white;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .login-logo {
+            margin-bottom: 30px;
+        }
+
+        .login-logo img {
+            width: 80px;
+            height: 80px;
+            filter: brightness(0) invert(1);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .login-input {
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+
+        .login-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .login-btn {
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(232, 74, 46, 0.3);
+        }
+
+        /* Loading Screen */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0A2538 0%, #0A0D0F 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #loadingScreen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .logo-container {
+            margin-bottom: 40px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .logo-container img {
+            width: 120px;
+            height: 120px;
+            filter: brightness(0) invert(1);
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #E84A2E, #E2CC9C, #E84A2E);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Main Application */
+        #mainApp {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        #mainApp.active {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(226, 228, 231, 0.3);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(226, 204, 156, 0.05) 0%, 
+                rgba(232, 74, 46, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            gap: 15px;
+        }
+
+        .sidebar-logo img {
+            width: 50px;
+            height: 50px;
+        }
+
+        .sidebar-logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0A2538;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            color: #0A2538;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(226, 204, 156, 0.3), 
+                rgba(232, 74, 46, 0.3));
+            transition: left 0.3s ease;
+        }
+
+        .nav-item:hover::before {
+            left: 0;
+        }
+
+        .nav-item:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-item.active {
+            background: rgba(232, 74, 46, 0.15);
+            color: #E84A2E;
+            font-weight: 600;
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background: #E84A2E;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .header-left h2 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0A2538;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb {
+            color: #0A2538;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(232, 74, 46, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            color: #0A2538;
+            border: 1px solid rgba(226, 228, 231, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            position: relative;
+            margin-bottom: 30px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            font-size: 15px;
+            color: #0A2538;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #E84A2E;
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 5px 20px rgba(232, 74, 46, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: #0A2538;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+            animation: slideUp 0.7s ease-out;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, 
+                rgba(226, 204, 156, 0.1) 0%, 
+                transparent 70%);
+            transition: transform 0.6s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(10, 37, 56, 0.1);
+        }
+
+        .stat-card:hover::before {
+            transform: scale(1.2);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #E84A2E 0%, #E2CC9C 100%);
+        }
+
+        .stat-icon svg {
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0A2538;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #0A2538;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Rooms Grid */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .room-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .room-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #E84A2E, #E2CC9C);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(10, 37, 56, 0.1);
+        }
+
+        .room-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .room-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0A2538;
+        }
+
+        .room-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(232, 74, 46, 0.1), rgba(226, 204, 156, 0.1));
+            color: #E84A2E;
+        }
+
+        .department-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .department-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .department-item:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: translateX(5px);
+        }
+
+        .department-name {
+            font-weight: 600;
+            color: #0A2538;
+        }
+
+        .item-count {
+            font-size: 12px;
+            color: #0A2538;
+        }
+
+        /* View Styles */
+        .view {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Table improvements */
+        .table-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* Status badges */
+        .status-badge.good {
+            background: linear-gradient(135deg, rgba(46, 213, 115, 0.2), rgba(46, 213, 115, 0.1));
+            color: #2ed573;
+        }
+
+        .status-badge.fair {
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.2), rgba(255, 165, 0, 0.1));
+            color: #ffa500;
+        }
+
+        .status-badge.underrepair {
+            background: linear-gradient(135deg, rgba(255, 69, 0, 0.2), rgba(255, 69, 0, 0.1));
+            color: #ff4500;
+        }
+
+        .status-badge.reserved {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(138, 43, 226, 0.1));
+            color: #8a2be2;
+        }
+
+        .status-badge.inactive {
+            background: linear-gradient(135deg, rgba(128, 128, 128, 0.2), rgba(128, 128, 128, 0.1));
+            color: #808080;
+        }
+
+        .status-badge.active {
+            background: linear-gradient(135deg, rgba(46, 213, 115, 0.2), rgba(46, 213, 115, 0.1));
+            color: #2ed573;
+        }
+
+        /* Card layouts for different views */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Navigation History */
+        .nav-history {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Room Detail View */
+        .room-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .room-detail-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0A2538;
+        }
+
+        .room-detail-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .room-items-table {
+            width: 100%;
+        }
+
+        .room-items-table th {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid rgba(226, 228, 231, 0.3);
+        }
+
+        .room-items-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(226, 228, 231, 0.1);
+        }
+
+        /* Inventory Table */
+        .inventory-table {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px;
+            border-bottom: 1px solid rgba(226, 228, 231, 0.3);
+        }
+
+        .table-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0A2538;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(10, 37, 56, 0.05);
+        }
+
+        th {
+            padding: 15px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0A2538;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(226, 228, 231, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        td {
+            padding: 18px 20px;
+            color: #0A2538;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(232, 74, 46, 0.1);
+            transform: scale(1.1);
+        }
+
+        .icon-btn svg {
+            width: 16px;
+            height: 16px;
+            color: #0A2538;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 13, 15, 0.7);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: rgba(246, 244, 241, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+            animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0A2538;
+        }
+
+        .close-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(232, 74, 46, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(232, 74, 46, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #0A2538;
+            font-size: 14px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 228, 231, 0.3);
+            background: rgba(255, 255, 255, 0.5);
+            font-size: 15px;
+            color: #0A2538;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #E84A2E;
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(226, 228, 231, 0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #E84A2E, #E2CC9C);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #E2CC9C, #E84A2E);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-container">
+            <div class="login-logo">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%230A2538'/%3E%3Cstop offset='50%25' style='stop-color:%23E84A2E'/%3E%3Cstop offset='100%25' style='stop-color:%23E2CC9C'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grad)'/%3E%3C/svg%3E" alt="NEXIS">
+            </div>
+            <h2 style="margin-bottom: 30px; font-size: 28px;">Welcome to NEXIS</h2>
+            <form class="login-form" id="loginForm">
+                <input type="text" class="login-input" placeholder="Username" required>
+                <input type="password" class="login-input" placeholder="Password" required>
+                <button type="submit" class="login-btn">Login to System</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="hidden">
+        <div class="logo-container">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='white'/%3E%3C/svg%3E" alt="NEXIS Logo">
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="loading-text">Loading NEXIS...</div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%230A2538'/%3E%3Cstop offset='50%25' style='stop-color:%23E84A2E'/%3E%3Cstop offset='100%25' style='stop-color:%23E2CC9C'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grad)'/%3E%3C/svg%3E" alt="NEXIS">
+                <h1>NEXIS</h1>
+            </div>
+
+            <nav>
+                <div class="nav-item active" onclick="changeView('dashboard', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    <span class="nav-text">Dashboard</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('rooms', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <span class="nav-text">Room Overview</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('inventory', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    <span class="nav-text">Inventory</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('activity', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span class="nav-text">Activity Log</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('reports', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="nav-text">Reports</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('archive', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                    </svg>
+                    <span class="nav-text">Archive</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('users', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <span class="nav-text">User Management</span>
+                </div>
+
+                <div class="nav-item" onclick="changeView('settings', this)">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 001.066 1.066c.756.426.756 2.924 0 3.35a1.724 1.724 0 00-1.066 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-1.066-1.066c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-1.066z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="nav-text">Settings</span>
+                </div>
+            </nav>
+
+            <div style="margin-top: auto; padding-top: 20px;">
+                <div class="nav-item" onclick="logout()">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    <span class="nav-text">Logout</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Dashboard View (Default) -->
+            <div id="dashboardView" class="view active">
+                <div class="header">
+                    <div class="header-left">
+                        <h2>Dashboard</h2>
+                        <div class="breadcrumb">Home / Dashboard</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="showModal('export')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Export
+                        </button>
+                        <button class="btn btn-primary" onclick="showModal('addItem')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add Item
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search inventory items, codes, or departments..." id="searchInput">
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                        </div>
+                        <div class="stat-value" id="totalItemsCount">142</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                        <div class="stat-value">4</div>
+                        <div class="stat-label">Active Rooms</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">Departments</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-value">98%</div>
+                        <div class="stat-label">Items in Good Status</div>
+                    </div>
+                </div>
+
+                <div class="rooms-grid">
+                    <div class="room-card" onclick="viewRoomDetails('1101')">
+                        <div class="room-header">
+                            <div class="room-number">Room 1101</div>
+                            <div class="room-badge">4 Departments</div>
+                        </div>
+                        <div class="department-list">
+                            <div class="department-item">
+                                <span class="department-name">CEO</span>
+                                <span class="item-count">5 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">Reception</span>
+                                <span class="item-count">9 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">DES</span>
+                                <span class="item-count">10 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">HR</span>
+                                <span class="item-count">6 items</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-card" onclick="viewRoomDetails('1102')">
+                        <div class="room-header">
+                            <div class="room-number">Room 1102</div>
+                            <div class="room-badge">6 Departments</div>
+                        </div>
+                        <div class="department-list">
+                            <div class="department-item">
+                                <span class="department-name">IT</span>
+                                <span class="item-count">7 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">Drafting 1</span>
+                                <span class="item-count">10 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">Drafting 2</span>
+                                <span class="item-count">7 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">Customer Service</span>
+                                <span class="item-count">6 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">IDCC</span>
+                                <span class="item-count">5 items</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-card" onclick="viewRoomDetails('1103')">
+                        <div class="room-header">
+                            <div class="room-number">Room 1103</div>
+                            <div class="room-badge">3 Departments</div>
+                        </div>
+                        <div class="department-list">
+                            <div class="department-item">
+                                <span class="department-name">Drafting 3</span>
+                                <span class="item-count">7 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">Checker</span>
+                                <span class="item-count">7 items</span>
+                            </div>
+                            <div class="department-item">
+                                <span class="department-name">Board Room</span>
+                                <span class="item-count">3 items</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="room-card" onclick="viewRoomDetails('1104')">
+                        <div class="room-header">
+                            <div class="room-number">Room 1104</div>
+                            <div class="room-badge">1 Department</div>
+                        </div>
+                        <div class="department-list">
+                            <div class="department-item">
+                                <span class="department-name">MSM</span>
+                                <span class="item-count">8 items</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventory View -->
+            <div id="inventoryView" class="view">
+                <div class="header">
+                    <div class="header-left">
+                        <h2>Inventory Management</h2>
+                        <div class="breadcrumb">Home / Inventory</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                            </svg>
+                            Filter
+                        </button>
+                        <button class="btn btn-primary" onclick="showModal('addItem')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add Item
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search by item code, description, or initials..." id="inventorySearch">
+                </div>
+
+                <div class="inventory-table">
+                    <div class="table-header">
+                        <h3 class="table-title">All Inventory Items</h3>
+                        <button class="btn btn-secondary">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Export
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Item Code</th>
+                                    <th>Description</th>
+                                    <th>Room</th>
+                                    <th>Department</th>
+                                    <th>Assigned To</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody">
+                                <!-- Items will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room Overview View -->
+            <div id="roomsView" class="view">
+                <div class="nav-history">
+                    <button class="nav-btn" id="backBtn" onclick="navigateBack()" disabled>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Back
+                    </button>
+                    <button class="nav-btn" id="forwardBtn" onclick="navigateForward()" disabled>
+                        Forward
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="header">
+                    <div class="header-left">
+                        <h2 id="roomsViewTitle">Room Overview</h2>
+                        <div class="breadcrumb" id="roomsBreadcrumb">Home / Room Overview</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="showModal('addRoom')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add Room
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-bar">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input type="text" class="search-input" placeholder="Search rooms..." id="roomsSearch">
+                </div>
+
+                <!-- Room List View -->
+                <div id="roomListView">
+                    <div class="cards-grid">
+                        <div class="content-card">
+                            <h3 style="margin-bottom: 20px; color: #0A2538;">Room 1101 Details</h3>
+                            <div class="department-list">
+                                <div class="department-item">
+                                    <span class="department-name">CEO Office</span>
+                                    <span class="item-count">5 items</span>
+                                </div>
+                                <div class="department-item">
+                                    <span class="department-name">Reception Area</span>
+                                    <span class="item-count">9 items</span>
+                                </div>
+                                <div class="department-item">
+                                    <span class="department-name">DES Department</span>
+                                    <span class="item-count">10 items</span>
+                                </div>
+                                <div class="department-item">
+                                    <span class="department-name">HR Department</span>
+                                    <span class="item-count">6 items</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" style="margin-top: 20px; width: 100%;" onclick="showRoomDetail('1101')">View Details</button>
+                        </div>
+
+                        <div class="content-card">
+                            <h3 style="margin-bottom: 20px; color: #0A2538;">Room Statistics</h3>
+                            <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                                <div class="stat-card">
+                                    <div class="stat-value">30</div>
+                                    <div class="stat-label">Total Items</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">29</div>
+                                    <div class="stat-label">Active Items</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">1</div>
+                                    <div class="stat-label">Under Repair</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">97%</div>
+                                    <div class="stat-label">Availability</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room Detail View -->
+                <div id="roomDetailView" style="display: none;">
+                    <div class="room-detail-header">
+                        <h3 class="room-detail-title" id="roomDetailTitle">Room 1101</h3>
+                        <button class="btn btn-secondary" onclick="showRoomList()">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                            </svg>
+                            Back to Rooms
+                        </button>
+                    </div>
+                    
+                    <div class="room-detail-content">
+                        <div class="content-card">
+                            <h3 style="margin-bottom: 20px; color: #0A2538;">Items in Room</h3>
+                            <table class="room-items-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item Code</th>
+                                        <th>Description</th>
+                                        <th>Department</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roomItemsTableBody">
+                                    <!-- Items will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="content-card">
+                            <h3 style="margin-bottom: 20px; color: #0A2538;">Room Information</h3>
+                            <div class="stats-grid" style="grid-template-columns: 1fr;">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="roomItemCount">0</div>
+                                    <div class="stat-label">Total Items</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="roomGoodItems">0</div>
+                                    <div class="stat-label">Good Condition</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="roomRepairItems">0</div>
+                                    <div class="stat-label">Under Repair</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Log View -->
+            <div id="activityView" class="view">
+                <div class="header">
+                    <div class="header-left">
+                        <h2>Activity Log</h2>
+                        <div class="breadcrumb">Home / Activity Log</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                            </svg>
+                            Filter
+                        </button>
+                    </div>
+                </div>
+
+                <div class="inventory-table">
+                    <div class="table-header">
+                        <h3 class="table-title">Recent Activities</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Item</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityTableBody">
+                                <!-- Activities will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports View -->
+            <div id="reportsView" class="view">
+                <div class="header">
+                    <div class="header-left">
+                        <h2>Reports & Analytics</h2>
+                        <div class="breadcrumb">Home / Reports</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Generate Report
+                        </button>
+                    </div>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="content-card">
+                        <h3 style="margin-bottom: 20px; color: #0A2538;">Inventory Summary</h3>
+                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="stat-card">
+                                <div class="stat-value">142</div>
+                                <div class="stat-label">Total Items</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">138</div>
+                                <div class="stat-label">Good Condition</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Under Repair</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">1</div>
+                                <div class="stat-label">Reserved</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 style="margin-bottom: 20px; color: #0A2538;">Department Distribution</h3>
+                        <div style="padding: 20px;">
+                            <p>CEO: 5 items (3.5%)</p>
+                            <p>Reception: 9 items (6.3%)</p>
+                            <p>DES: 10 items (7.0%)</p>
+                            <p>HR: 6 items (4.2%)</p>
+                            <p>IT: 7 items (4.9%)</p>
+                            <p>MSM: 8 items (5.6%)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Archive View -->
+            <div id="archiveView" class="view">
+                <div class="header">
+                    <div class="header-left">
+                        <h2>Archive</h2>
+                        <div class="breadcrumb">Home / Archive</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                            </svg>
+                            Filter
+                        </button>
+                    </div>
+                </div>
+
+                <div class="inventory-table">
+                    <div class="table-header">
+                        <h3 class="table-title">Archived Items</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Item Code</th>
+                                    <th>Description</th>
+                                    <th>Room</th>
+                                    <th>Department</th>
+                                    <th>Archived Date</th>
+                                    <th>Reason</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archiveTableBody">
+                                <!-- Archived items will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management View -->
+            <div id="usersView" class="view">
+                <div class="header">
+                    <div class="header-left">
+                        <h2>User Management</h2>
+                        <div class="breadcrumb">Home / User Management</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="showModal('addUser')">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add User
+                        </button>
+                    </div>
+                </div>
+
+                <div class="inventory-table">
+                    <div class="table-header">
+                        <h3 class="table-title">System Users</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Full Name</th>
+                                    <th>Role</th>
+                                    <th>Department</th>
+                                    <th>Last Login</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Users will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settingsView" class="view">
+                <div class="header">
+                    <div class="header-left">
+                        <h2>System Settings</h2>
+                        <div class="breadcrumb">Home / Settings</div>
+                    </div>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="content-card">
+                        <h3 style="margin-bottom: 20px; color: #0A2538;">General Settings</h3>
+                        <div class="form-group">
+                            <label class="form-label">System Name</label>
+                            <input type="text" class="form-input" value="NEXIS Inventory System">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Auto-backup</label>
+                            <select class="form-select">
+                                <option>Daily</option>
+                                <option>Weekly</option>
+                                <option>Monthly</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary">Save Settings</button>
+                    </div>
+
+                    <div class="content-card">
+                        <h3 style="margin-bottom: 20px; color: #0A2538;">Database Management</h3>
+                        <div style="margin-bottom: 20px;">
+                            <p>Last Backup: 2024-01-14 23:00</p>
+                            <p>Database Size: 45.2 MB</p>
+                        </div>
+                        <button class="btn btn-secondary" style="margin-bottom: 10px;">Backup Now</button>
+                        <button class="btn btn-secondary">Optimize Database</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Add New Item</h3>
+                <button class="close-btn" onclick="closeModal()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="itemForm">
+                <div class="form-group">
+                    <label class="form-label">Item Code</label>
+                    <input type="text" class="form-input" id="itemCode" placeholder="MSM-XXX-XXX" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Item Description</label>
+                    <input type="text" class="form-input" id="itemDescription" placeholder="Enter item description" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Room Number</label>
+                    <select class="form-select" id="itemRoom" required>
+                        <option value="">Select Room</option>
+                        <option value="1101">1101</option>
+                        <option value="1102">1102</option>
+                        <option value="1103">1103</option>
+                        <option value="1104">1104</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select class="form-select" id="itemDepartment" required>
+                        <option value="">Select Department</option>
+                        <option value="CEO">CEO</option>
+                        <option value="Reception">Reception</option>
+                        <option value="DES">DES</option>
+                        <option value="HR">HR</option>
+                        <option value="IT">IT</option>
+                        <option value="MSM">MSM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assigned To (Initials)</label>
+                    <input type="text" class="form-input" id="itemAssignedTo" placeholder="XXX" maxlength="3">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="itemStatus" required>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Under Repair">Under Repair</option>
+                        <option value="Reserved">Reserved</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Save Item
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal-overlay" id="userModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="userModalTitle">Add New User</h3>
+                <button class="close-btn" onclick="closeUserModal()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="userForm">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="userUsername" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" id="userFullName" placeholder="Enter full name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Role</label>
+                    <select class="form-select" id="userRole" required>
+                        <option value="">Select Role</option>
+                        <option value="Administrator">Administrator</option>
+                        <option value="Manager">Manager</option>
+                        <option value="User">User</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select class="form-select" id="userDepartment" required>
+                        <option value="">Select Department</option>
+                        <option value="CEO">CEO</option>
+                        <option value="Reception">Reception</option>
+                        <option value="DES">DES</option>
+                        <option value="HR">HR</option>
+                        <option value="IT">IT</option>
+                        <option value="MSM">MSM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="userPassword" placeholder="Enter password" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="userStatus" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Save User
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Room Modal -->
+    <div class="modal-overlay" id="roomModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Room</h3>
+                <button class="close-btn" onclick="closeRoomModal()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="roomForm">
+                <div class="form-group">
+                    <label class="form-label">Room Number</label>
+                    <input type="text" class="form-input" id="roomNumber" placeholder="e.g., 1105" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Room Name</label>
+                    <input type="text" class="form-input" id="roomName" placeholder="e.g., Conference Room" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    Save Room
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let inventoryData = JSON.parse(localStorage.getItem('inventoryData')) || [
+            {
+                code: 'MSM-EXT-001',
+                description: 'Executive Table',
+                room: '1101',
+                department: 'CEO',
+                assignedTo: 'NGD',
+                status: 'Good',
+                archived: false
+            },
+            {
+                code: 'MSM-CHABR-001',
+                description: 'Chair Brown',
+                room: '1101',
+                department: 'CEO',
+                assignedTo: 'NGD',
+                status: 'Fair',
+                archived: false
+            },
+            {
+                code: 'MSM-STW-001',
+                description: 'Standard Table White',
+                room: '1101',
+                department: 'Reception',
+                assignedTo: 'CHM',
+                status: 'Under Repair',
+                archived: false
+            }
+        ];
+
+        let archivedData = JSON.parse(localStorage.getItem('archivedData')) || [
+            {
+                code: 'MSM-OBS-001',
+                description: 'Obsolete Monitor',
+                room: '1102',
+                department: 'IT',
+                archivedDate: '2024-01-10',
+                reason: 'Technology Upgrade'
+            }
+        ];
+
+        let userData = JSON.parse(localStorage.getItem('userData')) || [
+            {
+                username: 'admin',
+                fullName: 'System Administrator',
+                role: 'Administrator',
+                department: 'IT',
+                lastLogin: '2024-01-15 14:30',
+                status: 'Active'
+            },
+            {
+                username: 'manager',
+                fullName: 'Department Manager',
+                role: 'Manager',
+                department: 'Operations',
+                lastLogin: '2024-01-15 13:45',
+                status: 'Active'
+            }
+        ];
+
+        let activityData = JSON.parse(localStorage.getItem('activityData')) || [
+            {
+                timestamp: '2024-01-15 14:30',
+                user: 'Admin',
+                action: 'Added Item',
+                item: 'MSM-EXT-001',
+                details: 'Executive Table added to Room 1101'
+            },
+            {
+                timestamp: '2024-01-15 13:45',
+                user: 'Manager',
+                action: 'Updated Status',
+                item: 'MSM-CHABR-001',
+                details: 'Status changed to Under Repair'
+            },
+            {
+                timestamp: '2024-01-15 12:20',
+                user: 'Admin',
+                action: 'Assigned Item',
+                item: 'MSM-STW-001',
+                details: 'Assigned to CHM in Reception'
+            }
+        ];
+
+        // Navigation History
+        let navigationHistory = [];
+        let currentHistoryIndex = -1;
+
+        // Login Functionality
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const loginScreen = document.getElementById('loginScreen');
+            const loadingScreen = document.getElementById('loadingScreen');
+            
+            // Show loading screen
+            loginScreen.style.display = 'none';
+            loadingScreen.classList.remove('hidden');
+            
+            // Simulate login process
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                document.getElementById('mainApp').classList.add('active');
+                // Initialize data
+                updateInventoryTable();
+                updateArchiveTable();
+                updateUsersTable();
+                updateActivityTable();
+                updateStats();
+            }, 2000);
+        });
+
+        // Loading Screen Animation
+        window.addEventListener('load', function() {
+            const progressFill = document.getElementById('progressFill');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                }
+                progressFill.style.width = progress + '%';
+            }, 200);
+        });
+
+        // Navigation
+        function changeView(view, element) {
+            // Remove active class from all nav items and views
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // Add active class to clicked item
+            if (element) {
+                element.classList.add('active');
+            }
+            
+            // Show selected view
+            document.getElementById(view + 'View').classList.add('active');
+            
+            // Update navigation history
+            if (currentHistoryIndex < navigationHistory.length - 1) {
+                navigationHistory = navigationHistory.slice(0, currentHistoryIndex + 1);
+            }
+            navigationHistory.push(view);
+            currentHistoryIndex = navigationHistory.length - 1;
+            updateNavigationButtons();
+        }
+
+        // Navigation History Functions
+        function navigateBack() {
+            if (currentHistoryIndex > 0) {
+                currentHistoryIndex--;
+                const view = navigationHistory[currentHistoryIndex];
+                
+                // Remove active class from all nav items and views
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelectorAll('.view').forEach(view => {
+                    view.classList.remove('active');
+                });
+                
+                // Add active class to the correct nav item
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    if (item.querySelector('.nav-text').textContent.toLowerCase().includes(view)) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                // Show selected view
+                document.getElementById(view + 'View').classList.add('active');
+                
+                updateNavigationButtons();
+            }
+        }
+
+        function navigateForward() {
+            if (currentHistoryIndex < navigationHistory.length - 1) {
+                currentHistoryIndex++;
+                const view = navigationHistory[currentHistoryIndex];
+                
+                // Remove active class from all nav items and views
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelectorAll('.view').forEach(view => {
+                    view.classList.remove('active');
+                });
+                
+                // Add active class to the correct nav item
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    if (item.querySelector('.nav-text').textContent.toLowerCase().includes(view)) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                // Show selected view
+                document.getElementById(view + 'View').classList.add('active');
+                
+                updateNavigationButtons();
+            }
+        }
+
+        function updateNavigationButtons() {
+            document.getElementById('backBtn').disabled = currentHistoryIndex <= 0;
+            document.getElementById('forwardBtn').disabled = currentHistoryIndex >= navigationHistory.length - 1;
+        }
+
+        // Modal Functions
+        function showModal(type) {
+            const modal = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            if (type === 'addItem') {
+                modalTitle.textContent = 'Add New Item';
+                // Reset form
+                document.getElementById('itemForm').reset();
+            } else if (type === 'export') {
+                modalTitle.textContent = 'Export Data';
+                // Add export functionality here
+            } else if (type === 'addRoom') {
+                showRoomModal();
+                return;
+            } else if (type === 'addUser') {
+                showUserModal();
+                return;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function showUserModal() {
+            document.getElementById('userModalOverlay').classList.add('active');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModalOverlay').classList.remove('active');
+        }
+
+        function showRoomModal() {
+            document.getElementById('roomModalOverlay').classList.add('active');
+        }
+
+        function closeRoomModal() {
+            document.getElementById('roomModalOverlay').classList.remove('active');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('userModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeUserModal();
+            }
+        });
+
+        document.getElementById('roomModalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRoomModal();
+            }
+        });
+
+        // View Room Details
+        function viewRoomDetails(roomNumber) {
+            changeView('rooms', document.querySelector('.nav-item[onclick*="rooms"]'));
+            showRoomDetail(roomNumber);
+        }
+
+        // Room Detail Functions
+        function showRoomDetail(roomNumber) {
+            document.getElementById('roomListView').style.display = 'none';
+            document.getElementById('roomDetailView').style.display = 'block';
+            
+            document.getElementById('roomDetailTitle').textContent = `Room ${roomNumber}`;
+            document.getElementById('roomsViewTitle').textContent = `Room ${roomNumber} Details`;
+            document.getElementById('roomsBreadcrumb').textContent = `Home / Room Overview / Room ${roomNumber}`;
+            
+            // Filter items for this room
+            const roomItems = inventoryData.filter(item => item.room === roomNumber && !item.archived);
+            
+            // Update room statistics
+            document.getElementById('roomItemCount').textContent = roomItems.length;
+            document.getElementById('roomGoodItems').textContent = roomItems.filter(item => item.status === 'Good').length;
+            document.getElementById('roomRepairItems').textContent = roomItems.filter(item => item.status === 'Under Repair').length;
+            
+            // Populate room items table
+            const tableBody = document.getElementById('roomItemsTableBody');
+            tableBody.innerHTML = '';
+            
+            roomItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${item.code}</strong></td>
+                    <td>${item.description}</td>
+                    <td>${item.department}</td>
+                    <td><span class="status-badge ${item.status.toLowerCase().replace(' ', '')}">${item.status}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Add to navigation history
+            if (currentHistoryIndex < navigationHistory.length - 1) {
+                navigationHistory = navigationHistory.slice(0, currentHistoryIndex + 1);
+            }
+            navigationHistory.push(`roomDetail-${roomNumber}`);
+            currentHistoryIndex = navigationHistory.length - 1;
+            updateNavigationButtons();
+        }
+
+        function showRoomList() {
+            document.getElementById('roomDetailView').style.display = 'none';
+            document.getElementById('roomListView').style.display = 'block';
+            
+            document.getElementById('roomsViewTitle').textContent = 'Room Overview';
+            document.getElementById('roomsBreadcrumb').textContent = 'Home / Room Overview';
+            
+            // Add to navigation history
+            if (currentHistoryIndex < navigationHistory.length - 1) {
+                navigationHistory = navigationHistory.slice(0, currentHistoryIndex + 1);
+            }
+            navigationHistory.push('rooms');
+            currentHistoryIndex = navigationHistory.length - 1;
+            updateNavigationButtons();
+        }
+
+        // Edit Item
+        function editItem(itemCode) {
+            showModal('addItem');
+            document.getElementById('modalTitle').textContent = 'Edit Item: ' + itemCode;
+            
+            // Find the item to edit
+            const item = inventoryData.find(i => i.code === itemCode);
+            if (item) {
+                document.getElementById('itemCode').value = item.code;
+                document.getElementById('itemDescription').value = item.description;
+                document.getElementById('itemRoom').value = item.room;
+                document.getElementById('itemDepartment').value = item.department;
+                document.getElementById('itemAssignedTo').value = item.assignedTo;
+                document.getElementById('itemStatus').value = item.status;
+            }
+        }
+
+        // Archive Item
+        function archiveItem(itemCode) {
+            if (confirm('Are you sure you want to archive this item?')) {
+                // Find the item to archive
+                const itemIndex = inventoryData.findIndex(item => item.code === itemCode);
+                if (itemIndex !== -1) {
+                    const item = inventoryData[itemIndex];
+                    
+                    // Add to archived data
+                    archivedData.push({
+                        code: item.code,
+                        description: item.description,
+                        room: item.room,
+                        department: item.department,
+                        archivedDate: new Date().toISOString().split('T')[0],
+                        reason: 'Manual Archive'
+                    });
+                    
+                    // Remove from inventory
+                    inventoryData.splice(itemIndex, 1);
+                    
+                    // Save data
+                    saveInventoryData();
+                    saveArchivedData();
+                    
+                    // Update tables
+                    updateInventoryTable();
+                    updateArchiveTable();
+                    updateStats();
+                    
+                    // Log activity
+                    logActivity('Archived Item', itemCode, `Item archived from ${item.room}`);
+                    
+                    alert('Item archived successfully!');
+                }
+            }
+        }
+
+        // Restore Item
+        function restoreItem(itemCode) {
+            if (confirm('Are you sure you want to restore this item?')) {
+                // Find the item to restore
+                const itemIndex = archivedData.findIndex(item => item.code === itemCode);
+                if (itemIndex !== -1) {
+                    const item = archivedData[itemIndex];
+                    
+                    // Add back to inventory
+                    inventoryData.push({
+                        code: item.code,
+                        description: item.description,
+                        room: item.room,
+                        department: item.department,
+                        assignedTo: '',
+                        status: 'Good',
+                        archived: false
+                    });
+                    
+                    // Remove from archived
+                    archivedData.splice(itemIndex, 1);
+                    
+                    // Save data
+                    saveInventoryData();
+                    saveArchivedData();
+                    
+                    // Update tables
+                    updateInventoryTable();
+                    updateArchiveTable();
+                    updateStats();
+                    
+                    // Log activity
+                    logActivity('Restored Item', itemCode, `Item restored to ${item.room}`);
+                    
+                    alert('Item restored successfully!');
+                }
+            }
+        }
+
+        // Delete Item (permanently)
+        function deleteItem(itemCode) {
+            if (confirm('Are you sure you want to permanently delete this item? This action cannot be undone.')) {
+                // Remove item from archived data
+                archivedData = archivedData.filter(item => item.code !== itemCode);
+                saveArchivedData();
+                updateArchiveTable();
+                
+                // Log activity
+                logActivity('Permanently Deleted Item', itemCode, 'Item permanently deleted from archive');
+                
+                alert('Item permanently deleted!');
+            }
+        }
+
+        // Edit User
+        function editUser(username) {
+            showUserModal();
+            document.getElementById('userModalTitle').textContent = 'Edit User: ' + username;
+            
+            // Find the user to edit
+            const user = userData.find(u => u.username === username);
+            if (user) {
+                document.getElementById('userUsername').value = user.username;
+                document.getElementById('userFullName').value = user.fullName;
+                document.getElementById('userRole').value = user.role;
+                document.getElementById('userDepartment').value = user.department;
+                document.getElementById('userStatus').value = user.status;
+                document.getElementById('userPassword').value = ''; // Don't show password
+            }
+        }
+
+        // Delete User
+        function deleteUser(username) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                // Remove user from data
+                userData = userData.filter(user => user.username !== username);
+                saveUserData();
+                updateUsersTable();
+                
+                // Log activity
+                logActivity('Deleted User', username, 'User account deleted');
+                
+                alert('User deleted successfully!');
+            }
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                document.getElementById('mainApp').classList.remove('active');
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('loginForm').reset();
+            }
+        }
+
+        // Form Submit - Add/Edit Item
+        document.getElementById('itemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const itemCode = document.getElementById('itemCode').value;
+            const itemDescription = document.getElementById('itemDescription').value;
+            const itemRoom = document.getElementById('itemRoom').value;
+            const itemDepartment = document.getElementById('itemDepartment').value;
+            const itemAssignedTo = document.getElementById('itemAssignedTo').value;
+            const itemStatus = document.getElementById('itemStatus').value;
+            
+            // Check if we're editing an existing item
+            const existingItemIndex = inventoryData.findIndex(item => item.code === itemCode);
+            
+            if (existingItemIndex !== -1) {
+                // Update existing item
+                inventoryData[existingItemIndex] = {
+                    code: itemCode,
+                    description: itemDescription,
+                    room: itemRoom,
+                    department: itemDepartment,
+                    assignedTo: itemAssignedTo,
+                    status: itemStatus,
+                    archived: false
+                };
+                
+                // Log activity
+                logActivity('Updated Item', itemCode, `Item updated in ${itemRoom}`);
+            } else {
+                // Add new item
+                inventoryData.push({
+                    code: itemCode,
+                    description: itemDescription,
+                    room: itemRoom,
+                    department: itemDepartment,
+                    assignedTo: itemAssignedTo,
+                    status: itemStatus,
+                    archived: false
+                });
+                
+                // Log activity
+                logActivity('Added Item', itemCode, `New item added to ${itemRoom}`);
+            }
+            
+            saveInventoryData();
+            updateInventoryTable();
+            updateStats();
+            
+            alert('Item saved successfully!');
+            closeModal();
+            this.reset();
+        });
+
+        // Form Submit - Add/Edit User
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('userUsername').value;
+            const fullName = document.getElementById('userFullName').value;
+            const role = document.getElementById('userRole').value;
+            const department = document.getElementById('userDepartment').value;
+            const password = document.getElementById('userPassword').value;
+            const status = document.getElementById('userStatus').value;
+            
+            // Check if we're editing an existing user
+            const existingUserIndex = userData.findIndex(user => user.username === username);
+            
+            if (existingUserIndex !== -1) {
+                // Update existing user
+                userData[existingUserIndex] = {
+                    username: username,
+                    fullName: fullName,
+                    role: role,
+                    department: department,
+                    lastLogin: userData[existingUserIndex].lastLogin,
+                    status: status
+                };
+                
+                // Log activity
+                logActivity('Updated User', username, 'User account updated');
+            } else {
+                // Add new user
+                userData.push({
+                    username: username,
+                    fullName: fullName,
+                    role: role,
+                    department: department,
+                    lastLogin: 'Never',
+                    status: status
+                });
+                
+                // Log activity
+                logActivity('Added User', username, 'New user account created');
+            }
+            
+            saveUserData();
+            updateUsersTable();
+            
+            alert('User saved successfully!');
+            closeUserModal();
+            this.reset();
+        });
+
+        // Form Submit - Add Room
+        document.getElementById('roomForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const roomNumber = document.getElementById('roomNumber').value;
+            const roomName = document.getElementById('roomName').value;
+            
+            // Add room creation logic here
+            alert(`Room ${roomNumber} - ${roomName} added successfully!`);
+            closeRoomModal();
+            this.reset();
+        });
+
+        // Log activity
+        function logActivity(action, item, details) {
+            activityData.unshift({
+                timestamp: new Date().toLocaleString(),
+                user: 'Current User', // In a real app, this would be the logged-in user
+                action: action,
+                item: item,
+                details: details
+            });
+            
+            // Keep only the last 50 activities
+            if (activityData.length > 50) {
+                activityData = activityData.slice(0, 50);
+            }
+            
+            saveActivityData();
+            updateActivityTable();
+        }
+
+        // Save data to localStorage
+        function saveInventoryData() {
+            localStorage.setItem('inventoryData', JSON.stringify(inventoryData));
+        }
+
+        function saveArchivedData() {
+            localStorage.setItem('archivedData', JSON.stringify(archivedData));
+        }
+
+        function saveUserData() {
+            localStorage.setItem('userData', JSON.stringify(userData));
+        }
+
+        function saveActivityData() {
+            localStorage.setItem('activityData', JSON.stringify(activityData));
+        }
+
+        // Update inventory table
+        function updateInventoryTable() {
+            const tableBody = document.getElementById('inventoryTableBody');
+            tableBody.innerHTML = '';
+            
+            const activeItems = inventoryData.filter(item => !item.archived);
+            
+            activeItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${item.code}</strong></td>
+                    <td>${item.description}</td>
+                    <td>${item.room}</td>
+                    <td>${item.department}</td>
+                    <td>${item.assignedTo}</td>
+                    <td><span class="status-badge ${item.status.toLowerCase().replace(' ', '')}">${item.status}</span></td>
+                    <td>
+                        <div class="item-actions">
+                            <button class="icon-btn" onclick="editItem('${item.code}')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button class="icon-btn" onclick="archiveItem('${item.code}')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update archive table
+        function updateArchiveTable() {
+            const tableBody = document.getElementById('archiveTableBody');
+            tableBody.innerHTML = '';
+            
+            archivedData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${item.code}</strong></td>
+                    <td>${item.description}</td>
+                    <td>${item.room}</td>
+                    <td>${item.department}</td>
+                    <td>${item.archivedDate}</td>
+                    <td>${item.reason}</td>
+                    <td>
+                        <div class="item-actions">
+                            <button class="icon-btn" onclick="restoreItem('${item.code}')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                            </button>
+                            <button class="icon-btn" onclick="deleteItem('${item.code}')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update users table
+        function updateUsersTable() {
+            const tableBody = document.getElementById('usersTableBody');
+            tableBody.innerHTML = '';
+            
+            userData.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${user.username}</strong></td>
+                    <td>${user.fullName}</td>
+                    <td>${user.role}</td>
+                    <td>${user.department}</td>
+                    <td>${user.lastLogin}</td>
+                    <td><span class="status-badge ${user.status.toLowerCase()}">${user.status}</span></td>
+                    <td>
+                        <div class="item-actions">
+                            <button class="icon-btn" onclick="editUser('${user.username}')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button class="icon-btn" onclick="deleteUser('${user.username}')">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update activity table
+        function updateActivityTable() {
+            const tableBody = document.getElementById('activityTableBody');
+            tableBody.innerHTML = '';
+            
+            activityData.forEach(activity => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${activity.timestamp}</td>
+                    <td>${activity.user}</td>
+                    <td>${activity.action}</td>
+                    <td>${activity.item}</td>
+                    <td>${activity.details}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Update stats
+        function updateStats() {
+            const activeItems = inventoryData.filter(item => !item.archived);
+            document.getElementById('totalItemsCount').textContent = activeItems.length;
+        }
+
+        // Search Functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            // Filter room cards
+            const roomCards = document.querySelectorAll('.room-card');
+            roomCards.forEach(card => {
+                const roomNumber = card.querySelector('.room-number').textContent.toLowerCase();
+                const departmentItems = card.querySelectorAll('.department-name');
+                let hasMatch = roomNumber.includes(searchTerm);
+                
+                if (!hasMatch) {
+                    departmentItems.forEach(item => {
+                        if (item.textContent.toLowerCase().includes(searchTerm)) {
+                            hasMatch = true;
+                        }
+                    });
+                }
+                
+                card.style.display = hasMatch ? 'block' : 'none';
+            });
+        });
+
+        // Enhanced inventory search functionality
+        document.getElementById('inventorySearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#inventoryTableBody tr');
+            
+            tableRows.forEach(row => {
+                const itemCode = row.cells[0].textContent.toLowerCase();
+                const description = row.cells[1].textContent.toLowerCase();
+                const room = row.cells[2].textContent.toLowerCase();
+                const department = row.cells[3].textContent.toLowerCase();
+                const assignedTo = row.cells[4].textContent.toLowerCase();
+                
+                const hasMatch = itemCode.includes(searchTerm) || 
+                                description.includes(searchTerm) || 
+                                room.includes(searchTerm) || 
+                                department.includes(searchTerm) || 
+                                assignedTo.includes(searchTerm);
+                
+                row.style.display = hasMatch ? 'table-row' : 'none';
+            });
+        });
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateInventoryTable();
+            updateArchiveTable();
+            updateUsersTable();
+            updateActivityTable();
+            updateStats();
+            
+            // Initialize navigation history
+            navigationHistory = ['dashboard'];
+            currentHistoryIndex = 0;
+            updateNavigationButtons();
+        });
+    </script>
+</body>
+</html>
